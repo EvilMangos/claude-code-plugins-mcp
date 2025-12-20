@@ -12,7 +12,8 @@
     "inspect": "npx @modelcontextprotocol/inspector node dist/index.js",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "format": "prettier --write 'src/**/*.ts'"
+    "format": "prettier --write 'src/**/*.ts'",
+    "prepare": "husky install"
   },
   "keywords": [
     "mcp",
@@ -35,6 +36,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "globals": "^16.5.0",
+    "husky": "^8.0.3",
     "jiti": "^2.6.1",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3"
