@@ -6,6 +6,7 @@
  */
 
 import "reflect-metadata";
+import type { Container } from "inversify";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 /**
@@ -96,6 +97,7 @@ export interface TestServerSetup {
 	registeredTools: RegisteredTools;
 	saveReportTool: SaveReportToolDefinition;
 	getReportTool: GetReportToolDefinition;
+	container: Container;
 }
 
 /**
@@ -158,7 +160,7 @@ export function extractEnumValues(
  */
 export async function setupTestServerWithTools(): Promise<TestServerSetup> {
 	// Setup the DI container before registering tools
-	const { setupContainer } = await import("../../container");
+	const { setupContainer, container } = await import("../../container");
 	setupContainer();
 
 	const server = createTestServer();
@@ -169,5 +171,5 @@ export async function setupTestServerWithTools(): Promise<TestServerSetup> {
 	const saveReportTool = getSaveReportTool(server);
 	const getReportTool = getGetReportTool(server);
 
-	return { server, registeredTools, saveReportTool, getReportTool };
+	return { server, registeredTools, saveReportTool, getReportTool, container };
 }

@@ -5,7 +5,7 @@ import {
 	setupTestServerWithTools,
 } from "./helpers/mcp-test-utils";
 import { REPORT_TYPES } from "../types/report.type";
-import { TOKENS, container } from "../container";
+import { TOKENS } from "../container";
 import { IReportStorage } from "../types/report-storage.interface";
 
 /**
@@ -162,7 +162,7 @@ describe("MCP Server Tool Registration", () => {
 				// - The saveReport function
 				// - The report-repository module
 
-				const { saveReportTool } = await setupTestServerWithTools();
+				const { saveReportTool, container } = await setupTestServerWithTools();
 
 				// Save a report
 				const saveResult = await saveReportTool.handler!(
@@ -368,7 +368,7 @@ describe("MCP Server Tool Registration", () => {
 				// - The getReport function
 				// - The report-repository module
 
-				const { saveReportTool, getReportTool } =
+				const { saveReportTool, getReportTool, container } =
 					await setupTestServerWithTools();
 
 				// Save a report first

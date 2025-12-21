@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { TOKENS } from "../container/tokens";
+import { TOKENS } from "../container";
 import type { IGetReportResult } from "../types/get-report-result.interface";
 import type { IReportRepository } from "../types/report-repository.interface";
 import type { IReportService } from "../types/report-service.interface";
