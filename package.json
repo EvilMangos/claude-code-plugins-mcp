@@ -31,15 +31,12 @@
     "test:watch": "vitest"
   },
   "keywords": [
-    "mcp",
-    "langchain"
+    "mcp"
   ],
   "license": "MIT",
   "dependencies": {
-    "@langchain/core": "^1.1.7",
     "@modelcontextprotocol/sdk": "^1.25.1",
     "inversify": "^7.10.8",
-    "langchain": "^1.2.2",
     "reflect-metadata": "^0.2.2",
     "zod": "^4.2.1"
   },
