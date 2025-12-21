@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { setupTestServerWithTools } from "./helpers/mcp-test-utils";
+import {
+	extractEnumValues,
+	extractSchemaShape,
+	setupTestServerWithTools,
+} from "./helpers/mcp-test-utils";
+import { REPORT_TYPES } from "../types/report-types";
 
 /**
  * Integration tests for MCP tool registration.
@@ -48,33 +53,13 @@ describe("MCP Server Tool Registration", () => {
 			const { saveReportTool } = await setupTestServerWithTools();
 
 			expect(saveReportTool).toBeDefined();
+			expect(saveReportTool.inputSchema).toBeDefined();
 
-			// Get the schema shape - Zod schemas have different structures
-			const inputSchema = saveReportTool.inputSchema;
-			expect(inputSchema).toBeDefined();
-
-			// The schema should define taskId, reportType, content, fileType
-			// We verify by checking the schema object structure
-			if (inputSchema && typeof inputSchema === "object") {
-				// Zod v4 schemas expose shape directly or via _def.shape()
-				const shape =
-					"shape" in inputSchema
-						? inputSchema.shape
-						: "_def" in inputSchema &&
-							  inputSchema._def &&
-							  typeof inputSchema._def === "object" &&
-							  "shape" in inputSchema._def
-							? typeof inputSchema._def.shape === "function"
-								? inputSchema._def.shape()
-								: inputSchema._def.shape
-							: undefined;
-
-				if (shape) {
-					expect(shape).toHaveProperty("taskId");
-					expect(shape).toHaveProperty("reportType");
-					expect(shape).toHaveProperty("content");
-					expect(shape).toHaveProperty("fileType");
-				}
+			const shape = extractSchemaShape(saveReportTool.inputSchema);
+			if (shape) {
+				expect(shape).toHaveProperty("taskId");
+				expect(shape).toHaveProperty("reportType");
+				expect(shape).toHaveProperty("content");
 			}
 		});
 	});
@@ -92,7 +77,6 @@ describe("MCP Server Tool Registration", () => {
 					taskId: "test-task-123",
 					reportType: "requirements",
 					content: "# Test Report\nThis is test content.",
-					fileType: "full",
 				},
 				{} // empty extra context
 			);
@@ -118,7 +102,6 @@ describe("MCP Server Tool Registration", () => {
 					taskId: "",
 					reportType: "requirements",
 					content: "content",
-					fileType: "full",
 				},
 				{}
 			);
@@ -140,7 +123,6 @@ describe("MCP Server Tool Registration", () => {
 					taskId: "task-id",
 					reportType: "plan",
 					content: "content",
-					fileType: "signal",
 				},
 				{}
 			);
@@ -169,7 +151,6 @@ describe("MCP Server Tool Registration", () => {
 					taskId: "integration-test-123",
 					reportType: "implementation",
 					content: "Integration test content",
-					fileType: "full",
 				},
 				{}
 			);
@@ -181,14 +162,89 @@ describe("MCP Server Tool Registration", () => {
 			const { reportStorage } = await import("../storage/report-storage");
 			const storedReport = reportStorage.get(
 				"integration-test-123",
-				"implementation",
-				"full"
+				"implementation"
 			);
 
 			expect(storedReport).toBeDefined();
 			expect(storedReport?.taskId).toBe("integration-test-123");
 			expect(storedReport?.reportType).toBe("implementation");
 			expect(storedReport?.content).toBe("Integration test content");
+		});
+	});
+
+	// ============================================================
+	// REQ-6: Schema Exposes Valid Values to MCP
+	// ============================================================
+	describe("REQ-6: Schema Exposes Valid Values to MCP", () => {
+		it("should expose reportType as enum in the JSON schema", async () => {
+			const { saveReportTool } = await setupTestServerWithTools();
+
+			expect(saveReportTool).toBeDefined();
+			expect(saveReportTool.inputSchema).toBeDefined();
+
+			const shape = extractSchemaShape(saveReportTool.inputSchema);
+			if (shape && "reportType" in shape) {
+				const enumValues = extractEnumValues(shape.reportType);
+
+				expect(enumValues).toBeDefined();
+				expect(Array.isArray(enumValues)).toBe(true);
+				expect(enumValues).toHaveLength(12);
+			}
+		});
+
+		it("should include all 12 valid reportType values in the schema", async () => {
+			const { saveReportTool } = await setupTestServerWithTools();
+
+			const shape = extractSchemaShape(saveReportTool.inputSchema);
+			if (shape && "reportType" in shape) {
+				const enumValues = extractEnumValues(shape.reportType);
+
+				// Verify all expected values are present
+				REPORT_TYPES.forEach((value) => {
+					expect(enumValues).toContain(value);
+				});
+			}
+		});
+
+		it("should reject invalid reportType via MCP handler", async () => {
+			const { saveReportTool } = await setupTestServerWithTools();
+
+			// Call with invalid reportType
+			const result = await saveReportTool.handler!(
+				{
+					taskId: "test-task-123",
+					reportType: "invalid-custom-type",
+					content: "Test content",
+				},
+				{}
+			);
+
+			const parsedResult = JSON.parse(result.content[0].text);
+			expect(parsedResult.success).toBe(false);
+			expect(parsedResult.error).toBeDefined();
+		});
+
+		it("should accept valid reportType via MCP handler", async () => {
+			const { saveReportTool } = await setupTestServerWithTools();
+
+			// Test each valid type through the MCP handler
+			const results = await Promise.all(
+				REPORT_TYPES.map((reportType) =>
+					saveReportTool.handler!(
+						{
+							taskId: `test-task-${reportType}`,
+							reportType,
+							content: `Content for ${reportType}`,
+						},
+						{}
+					)
+				)
+			);
+
+			results.forEach((result) => {
+				const parsedResult = JSON.parse(result.content[0].text);
+				expect(parsedResult.success).toBe(true);
+			});
 		});
 	});
 });

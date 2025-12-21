@@ -5,7 +5,7 @@
  * in MCP tool registration tests.
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 /**
  * Type for the internal _registeredTools object on McpServer.
@@ -72,6 +72,59 @@ export interface TestServerSetup {
 	server: McpServer;
 	registeredTools: RegisteredTools;
 	saveReportTool: SaveReportToolDefinition;
+}
+
+/**
+ * Extracts the shape from a Zod input schema.
+ * Handles both Zod v4 schema structures where shape may be directly accessible
+ * or available via _def.shape() function.
+ * @param inputSchema - The input schema from a tool definition.
+ * @returns The schema shape object, or undefined if not extractable.
+ */
+export function extractSchemaShape(
+	inputSchema: SaveReportToolDefinition["inputSchema"]
+): Record<string, unknown> | undefined {
+	if (!inputSchema || typeof inputSchema !== "object") {
+		return undefined;
+	}
+
+	// Zod v4 schemas expose shape directly or via _def.shape()
+	if ("shape" in inputSchema && inputSchema.shape) {
+		return inputSchema.shape;
+	}
+
+	if (
+		"_def" in inputSchema &&
+		inputSchema._def &&
+		typeof inputSchema._def === "object" &&
+		"shape" in inputSchema._def
+	) {
+		const shapeDef = inputSchema._def.shape;
+		return typeof shapeDef === "function" ? shapeDef() : shapeDef;
+	}
+
+	return undefined;
+}
+
+/**
+ * Extracts enum values from a Zod enum schema field.
+ * Handles Zod enum structures where values are exposed via _def.values or options.
+ * @param field - The schema field to extract enum values from.
+ * @returns The enum values array, or undefined if not an enum field.
+ */
+export function extractEnumValues(
+	field: unknown
+): readonly string[] | undefined {
+	if (!field || typeof field !== "object") {
+		return undefined;
+	}
+
+	const enumField = field as {
+		_def?: { values?: readonly string[] };
+		options?: readonly string[];
+	};
+
+	return enumField._def?.values ?? enumField.options;
 }
 
 /**

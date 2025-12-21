@@ -1,7 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { saveReport } from "../save-report";
 import { reportStorage } from "../../storage/report-storage";
+import { REPORT_TYPES, ReportType } from "../../types/report-types";
 import { SaveReportInput } from "../schemas/save-report.schema";
+
+/**
+ * Test-only type that allows any string for reportType to test validation.
+ */
+type TestSaveReportInput = Omit<SaveReportInput, "reportType"> & {
+	reportType: string;
+};
 
 // Mock the storage module
 vi.mock("../../storage/report-storage", () => ({
@@ -25,15 +33,14 @@ describe("save-report tool", () => {
 	});
 
 	// ============================================================
-	// REQ-1: Save Full Report
+	// REQ-1: Save Report
 	// ============================================================
-	describe("REQ-1: Save Full Report", () => {
+	describe("REQ-1: Save Report", () => {
 		it("should save a report with valid inputs and return success", async () => {
 			const input: SaveReportInput = {
 				taskId: "develop-feature-auth-123",
 				reportType: "requirements",
 				content: "# Requirements Report\n\nThis is the content.",
-				fileType: "full",
 			};
 
 			const result = await saveReport(input);
@@ -46,7 +53,6 @@ describe("save-report tool", () => {
 				taskId: "develop-feature-auth-123",
 				reportType: "implementation",
 				content: "# Implementation Report",
-				fileType: "full",
 			};
 
 			await saveReport(input);
@@ -55,7 +61,6 @@ describe("save-report tool", () => {
 				expect.objectContaining({
 					taskId: "develop-feature-auth-123",
 					reportType: "implementation",
-					fileType: "full",
 				})
 			);
 		});
@@ -65,7 +70,6 @@ describe("save-report tool", () => {
 				taskId: "task-id-1",
 				reportType: "plan",
 				content: "# Plan Content",
-				fileType: "full",
 			};
 
 			await saveReport(input);
@@ -73,46 +77,9 @@ describe("save-report tool", () => {
 			expect(reportStorage.save).toHaveBeenCalledWith({
 				taskId: "task-id-1",
 				reportType: "plan",
-				fileType: "full",
 				content: "# Plan Content",
 				savedAt: "2025-01-15T10:30:00.000Z",
 			});
-		});
-
-		it("should handle signal file type", async () => {
-			const input: SaveReportInput = {
-				taskId: "task-123",
-				reportType: "requirements",
-				content: "STATUS: DONE\nFILE: requirements.md",
-				fileType: "signal",
-			};
-
-			const result = await saveReport(input);
-
-			expect(result).toEqual({ success: true });
-			expect(reportStorage.save).toHaveBeenCalledWith(
-				expect.objectContaining({
-					fileType: "signal",
-				})
-			);
-		});
-
-		it("should handle logs file type", async () => {
-			const input: SaveReportInput = {
-				taskId: "task-123",
-				reportType: "implementation",
-				content: "[2025-01-15] Starting implementation...",
-				fileType: "logs",
-			};
-
-			const result = await saveReport(input);
-
-			expect(result).toEqual({ success: true });
-			expect(reportStorage.save).toHaveBeenCalledWith(
-				expect.objectContaining({
-					fileType: "logs",
-				})
-			);
 		});
 	});
 
@@ -125,7 +92,6 @@ describe("save-report tool", () => {
 				const input = {
 					reportType: "requirements",
 					content: "content",
-					fileType: "full",
 				} as SaveReportInput;
 
 				const result = await saveReport(input);
@@ -141,7 +107,6 @@ describe("save-report tool", () => {
 					taskId: "",
 					reportType: "requirements",
 					content: "content",
-					fileType: "full",
 				};
 
 				const result = await saveReport(input);
@@ -157,7 +122,6 @@ describe("save-report tool", () => {
 					taskId: "   ",
 					reportType: "requirements",
 					content: "content",
-					fileType: "full",
 				};
 
 				const result = await saveReport(input);
@@ -174,7 +138,6 @@ describe("save-report tool", () => {
 				const input = {
 					taskId: "task-123",
 					content: "content",
-					fileType: "full",
 				} as SaveReportInput;
 
 				const result = await saveReport(input);
@@ -186,14 +149,13 @@ describe("save-report tool", () => {
 			});
 
 			it("should return error when reportType is empty string", async () => {
-				const input: SaveReportInput = {
+				const input: TestSaveReportInput = {
 					taskId: "task-123",
 					reportType: "",
 					content: "content",
-					fileType: "full",
 				};
 
-				const result = await saveReport(input);
+				const result = await saveReport(input as SaveReportInput);
 
 				expect(result).toEqual({
 					success: false,
@@ -202,14 +164,13 @@ describe("save-report tool", () => {
 			});
 
 			it("should return error when reportType is whitespace only", async () => {
-				const input: SaveReportInput = {
+				const input: TestSaveReportInput = {
 					taskId: "task-123",
 					reportType: "   ",
 					content: "content",
-					fileType: "full",
 				};
 
-				const result = await saveReport(input);
+				const result = await saveReport(input as SaveReportInput);
 
 				expect(result).toEqual({
 					success: false,
@@ -218,75 +179,12 @@ describe("save-report tool", () => {
 			});
 		});
 
-		describe("fileType validation", () => {
-			it("should return error when fileType is missing", async () => {
-				const input = {
-					taskId: "task-123",
-					reportType: "requirements",
-					content: "content",
-				} as SaveReportInput;
-
-				const result = await saveReport(input);
-
-				expect(result).toEqual({
-					success: false,
-					error: expect.stringContaining("fileType"),
-				});
-			});
-
-			it("should return error when fileType is invalid value", async () => {
-				const input = {
-					taskId: "task-123",
-					reportType: "requirements",
-					content: "content",
-					fileType: "invalid" as "full",
-				};
-
-				const result = await saveReport(input);
-
-				expect(result).toEqual({
-					success: false,
-					error: expect.stringContaining("fileType"),
-				});
-			});
-
-			it("should return error when fileType is empty string", async () => {
-				const input = {
-					taskId: "task-123",
-					reportType: "requirements",
-					content: "content",
-					fileType: "" as "full",
-				};
-
-				const result = await saveReport(input);
-
-				expect(result).toEqual({
-					success: false,
-					error: expect.stringContaining("fileType"),
-				});
-			});
-		});
-
 		describe("content validation", () => {
-			it("should accept empty string content for logs fileType", async () => {
+			it("should accept empty string content", async () => {
 				const input: SaveReportInput = {
 					taskId: "task-123",
 					reportType: "implementation",
 					content: "",
-					fileType: "logs",
-				};
-
-				const result = await saveReport(input);
-
-				expect(result).toEqual({ success: true });
-			});
-
-			it("should accept empty string content for full fileType", async () => {
-				const input: SaveReportInput = {
-					taskId: "task-123",
-					reportType: "implementation",
-					content: "",
-					fileType: "full",
 				};
 
 				const result = await saveReport(input);
@@ -298,7 +196,6 @@ describe("save-report tool", () => {
 				const input = {
 					taskId: "task-123",
 					reportType: "requirements",
-					fileType: "full",
 				} as SaveReportInput;
 
 				const result = await saveReport(input);
@@ -333,7 +230,6 @@ describe("save-report tool", () => {
 				taskId: "task-123",
 				reportType: "requirements",
 				content: "Updated content",
-				fileType: "full",
 			};
 
 			const result = await saveReport(input);
@@ -353,7 +249,6 @@ describe("save-report tool", () => {
 				taskId: "task-123",
 				reportType: "requirements",
 				content: "Original content",
-				fileType: "full",
 			};
 			await saveReport(input1);
 
@@ -365,7 +260,6 @@ describe("save-report tool", () => {
 				taskId: "task-123",
 				reportType: "requirements",
 				content: "Updated content",
-				fileType: "full",
 			};
 			await saveReport(input2);
 
@@ -382,13 +276,11 @@ describe("save-report tool", () => {
 				taskId: "task-123",
 				reportType: "requirements",
 				content: "Requirements content",
-				fileType: "full",
 			};
 			const input2: SaveReportInput = {
 				taskId: "task-123",
 				reportType: "implementation",
 				content: "Implementation content",
-				fileType: "full",
 			};
 
 			await saveReport(input1);
@@ -397,40 +289,14 @@ describe("save-report tool", () => {
 			// Both saves should be called independently
 			expect(reportStorage.save).toHaveBeenCalledTimes(2);
 		});
-
-		it("should differentiate by fileType in the key", async () => {
-			const inputFull: SaveReportInput = {
-				taskId: "task-123",
-				reportType: "requirements",
-				content: "Full report content",
-				fileType: "full",
-			};
-			const inputSignal: SaveReportInput = {
-				taskId: "task-123",
-				reportType: "requirements",
-				content: "Signal content",
-				fileType: "signal",
-			};
-
-			await saveReport(inputFull);
-			await saveReport(inputSignal);
-
-			// Both should be saved as different keys
-			expect(reportStorage.save).toHaveBeenCalledWith(
-				expect.objectContaining({ fileType: "full" })
-			);
-			expect(reportStorage.save).toHaveBeenCalledWith(
-				expect.objectContaining({ fileType: "signal" })
-			);
-		});
 	});
 
 	// ============================================================
-	// REQ-4: Accept Any Report Type
+	// REQ-4: Accept Only Valid Report Types (Enum Constraint)
 	// ============================================================
-	describe("REQ-4: Accept Any Report Type", () => {
-		it("should accept standard report types", async () => {
-			const standardTypes = [
+	describe("REQ-4: Accept Only Valid Report Types", () => {
+		it("should accept all 12 valid report types", async () => {
+			const validTypes: ReportType[] = [
 				"requirements",
 				"plan",
 				"tests-design",
@@ -445,11 +311,10 @@ describe("save-report tool", () => {
 				"documentation",
 			];
 
-			const inputs = standardTypes.map((reportType) => ({
+			const inputs: SaveReportInput[] = validTypes.map((reportType) => ({
 				taskId: "task-123",
 				reportType,
 				content: `Content for ${reportType}`,
-				fileType: "full" as const,
 			}));
 
 			const results = await Promise.all(inputs.map(saveReport));
@@ -459,69 +324,180 @@ describe("save-report tool", () => {
 			});
 		});
 
-		it("should accept custom report types", async () => {
-			const customTypes = [
+		it("should reject custom report types not in the enum", async () => {
+			const invalidTypes = [
 				"custom-report",
 				"my-special-type",
 				"experimental-phase",
 				"user-defined",
 				"123-numeric-prefix",
 				"camelCaseType",
-				"UPPERCASE_TYPE",
 			];
 
-			const inputs = customTypes.map((reportType) => ({
-				taskId: "task-123",
-				reportType,
-				content: `Content for ${reportType}`,
-				fileType: "full" as const,
-			}));
-
-			const results = await Promise.all(inputs.map(saveReport));
+			const results = await Promise.all(
+				invalidTypes.map((reportType) =>
+					saveReport({
+						taskId: "task-123",
+						reportType,
+						content: `Content for ${reportType}`,
+					} as SaveReportInput)
+				)
+			);
 
 			results.forEach((result) => {
-				expect(result).toEqual({ success: true });
+				expect(result.success).toBe(false);
+				expect(result.error).toBeDefined();
+				expect(result.error).toMatch(/reportType/i);
 			});
 		});
 
-		it("should accept report types with special characters", async () => {
-			const input: SaveReportInput = {
+		it("should reject uppercase variants of valid types (case-sensitive)", async () => {
+			const uppercaseVariants = [
+				"REQUIREMENTS",
+				"Requirements",
+				"PLAN",
+				"Plan",
+				"IMPLEMENTATION",
+				"Implementation",
+			];
+
+			const results = await Promise.all(
+				uppercaseVariants.map((reportType) =>
+					saveReport({
+						taskId: "task-123",
+						reportType,
+						content: "Content",
+					} as SaveReportInput)
+				)
+			);
+
+			results.forEach((result) => {
+				expect(result.success).toBe(false);
+				expect(result.error).toBeDefined();
+			});
+		});
+
+		it("should reject partial matches of valid types", async () => {
+			const partialMatches = [
+				"req",
+				"impl",
+				"plan-design",
+				"test",
+				"perf",
+				"sec",
+				"doc",
+				"refactor",
+			];
+
+			const results = await Promise.all(
+				partialMatches.map((reportType) =>
+					saveReport({
+						taskId: "task-123",
+						reportType,
+						content: "Content",
+					} as SaveReportInput)
+				)
+			);
+
+			results.forEach((result) => {
+				expect(result.success).toBe(false);
+				expect(result.error).toBeDefined();
+			});
+		});
+
+		it("should reject report types with special characters", async () => {
+			const input = {
 				taskId: "task-123",
 				reportType: "report-with-dashes_and_underscores",
 				content: "Content",
-				fileType: "full",
 			};
 
-			const result = await saveReport(input);
+			const result = await saveReport(input as SaveReportInput);
 
-			expect(result).toEqual({ success: true });
+			expect(result.success).toBe(false);
+			expect(result.error).toBeDefined();
 		});
 
-		it("should accept single character report type", async () => {
-			const input: SaveReportInput = {
+		it("should reject single character report type", async () => {
+			const input = {
 				taskId: "task-123",
 				reportType: "a",
 				content: "Content",
-				fileType: "full",
 			};
 
-			const result = await saveReport(input);
+			const result = await saveReport(input as SaveReportInput);
 
-			expect(result).toEqual({ success: true });
+			expect(result.success).toBe(false);
+			expect(result.error).toBeDefined();
 		});
 
-		it("should accept long report type names", async () => {
-			const input: SaveReportInput = {
+		it("should reject long invalid report type names", async () => {
+			const input = {
 				taskId: "task-123",
-				reportType:
-					"this-is-a-very-long-report-type-name-that-should-still-work",
+				reportType: "this-is-a-very-long-report-type-name-that-should-not-work",
 				content: "Content",
-				fileType: "full",
 			};
 
-			const result = await saveReport(input);
+			const result = await saveReport(input as SaveReportInput);
 
-			expect(result).toEqual({ success: true });
+			expect(result.success).toBe(false);
+			expect(result.error).toBeDefined();
+		});
+	});
+
+	// ============================================================
+	// REQ-3: Export REPORT_TYPES and ReportType
+	// ============================================================
+	describe("REQ-3: Export REPORT_TYPES and ReportType", () => {
+		it("should export REPORT_TYPES constant with 12 values", () => {
+			expect(REPORT_TYPES).toBeDefined();
+			expect(Array.isArray(REPORT_TYPES)).toBe(true);
+			expect(REPORT_TYPES).toHaveLength(12);
+		});
+
+		it("should export REPORT_TYPES containing all valid workflow stages", () => {
+			const expectedTypes = [
+				"requirements",
+				"plan",
+				"tests-design",
+				"tests-review",
+				"implementation",
+				"stabilization",
+				"acceptance",
+				"performance",
+				"security",
+				"refactoring",
+				"code-review",
+				"documentation",
+			];
+
+			expectedTypes.forEach((type) => {
+				expect(REPORT_TYPES).toContain(type);
+			});
+		});
+
+		it("should export ReportType type (compile-time verification)", () => {
+			// This test verifies TypeScript compilation succeeds with ReportType
+			// If ReportType is not exported, this file will fail to compile
+			const validType: ReportType = "requirements";
+			expect(validType).toBe("requirements");
+
+			// TypeScript should allow all valid types
+			const types: ReportType[] = [
+				"requirements",
+				"plan",
+				"tests-design",
+				"tests-review",
+				"implementation",
+				"stabilization",
+				"acceptance",
+				"performance",
+				"security",
+				"refactoring",
+				"code-review",
+				"documentation",
+			];
+			expect(types).toHaveLength(12);
 		});
 	});
 
@@ -534,7 +510,6 @@ describe("save-report tool", () => {
 				taskId: "",
 				reportType: "requirements",
 				content: "content",
-				fileType: "full",
 			};
 
 			const result = await saveReport(input);
@@ -549,26 +524,12 @@ describe("save-report tool", () => {
 				taskId: "",
 				reportType: "requirements",
 				content: "content",
-				fileType: "full",
 			};
 
 			const result = await saveReport(input);
 
 			expect(result.error).toMatch(/taskId/i);
 			expect(result.error!.length).toBeGreaterThan(5);
-		});
-
-		it("should return descriptive error message for invalid fileType", async () => {
-			const input = {
-				taskId: "task-123",
-				reportType: "requirements",
-				content: "content",
-				fileType: "not-a-valid-type" as "full",
-			} as SaveReportInput;
-
-			const result = await saveReport(input);
-
-			expect(result.error).toMatch(/fileType/i);
 		});
 
 		it("should handle storage errors gracefully", async () => {
@@ -580,7 +541,6 @@ describe("save-report tool", () => {
 				taskId: "task-123",
 				reportType: "requirements",
 				content: "content",
-				fileType: "full",
 			};
 
 			const result = await saveReport(input);
@@ -600,7 +560,6 @@ describe("save-report tool", () => {
 				taskId: "task-123",
 				reportType: "requirements",
 				content: "content",
-				fileType: "full",
 			};
 
 			const result = await saveReport(input);
@@ -620,7 +579,6 @@ describe("save-report tool", () => {
 				taskId: "task-123",
 				reportType: "requirements",
 				content: largeContent,
-				fileType: "full",
 			};
 
 			const result = await saveReport(input);
@@ -634,7 +592,6 @@ describe("save-report tool", () => {
 				reportType: "requirements",
 				content:
 					"Content with unicode: \u0000\u0001\u0002 and emojis: \uD83D\uDE00\uD83D\uDE01",
-				fileType: "full",
 			};
 
 			const result = await saveReport(input);
@@ -662,7 +619,6 @@ const code = "example";
 				taskId: "task-123",
 				reportType: "requirements",
 				content: markdownContent,
-				fileType: "full",
 			};
 
 			const result = await saveReport(input);
@@ -679,11 +635,10 @@ const code = "example";
 				"123-starting-with-numbers",
 			];
 
-			const inputs = taskIds.map((taskId) => ({
+			const inputs: SaveReportInput[] = taskIds.map((taskId) => ({
 				taskId,
 				reportType: "requirements",
 				content: "content",
-				fileType: "full" as const,
 			}));
 
 			const results = await Promise.all(inputs.map(saveReport));
@@ -695,9 +650,9 @@ const code = "example";
 
 		it("should handle concurrent save calls", async () => {
 			const inputs: SaveReportInput[] = [
-				{ taskId: "task-1", reportType: "r1", content: "c1", fileType: "full" },
-				{ taskId: "task-2", reportType: "r2", content: "c2", fileType: "full" },
-				{ taskId: "task-3", reportType: "r3", content: "c3", fileType: "full" },
+				{ taskId: "task-1", reportType: "requirements", content: "c1" },
+				{ taskId: "task-2", reportType: "plan", content: "c2" },
+				{ taskId: "task-3", reportType: "implementation", content: "c3" },
 			];
 
 			const results = await Promise.all(inputs.map(saveReport));

@@ -1,14 +1,14 @@
 import { StoredReport, reportStorage } from "../storage/report-storage";
+import type { SaveReportResult } from "../types/save-report-result";
 import { formatZodError } from "../utils/format-zod-error";
 import {
 	SaveReportInput,
-	SaveReportResult,
 	saveReportSchema,
 } from "./schemas/save-report.schema";
 
 /**
  * Save a workflow report to in-memory storage.
- * @param input - The report input containing taskId, reportType, content, and fileType
+ * @param input - The report input containing taskId, reportType, and content
  * @returns A result object with success status and optional error message
  */
 export async function saveReport(
@@ -31,7 +31,6 @@ export async function saveReport(
 		const storedReport: StoredReport = {
 			taskId: validatedInput.taskId,
 			reportType: validatedInput.reportType,
-			fileType: validatedInput.fileType,
 			content: validatedInput.content,
 			savedAt: new Date().toISOString(),
 		};

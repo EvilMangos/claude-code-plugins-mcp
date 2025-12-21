@@ -38,9 +38,8 @@ The server uses stdio transport for MCP communication:
 
 - **Entry point**: `src/index.ts` - Creates McpServer and connects via StdioServerTransport
 - **Tool registration**: `src/tools/register.ts` - Registers MCP tools with Zod schemas
-- **Tool schemas**: `src/tools/schemas/` - Extracted Zod validation schemas (e.g., `save-report.schema.ts`)
-- **Storage types**: `src/storage/types.ts` - Shared constants and types (e.g., `FILE_TYPES`, `FileType`)
-- **Storage**: `src/storage/report-storage.ts` - In-memory storage using Map with composite keys (`{taskId}:{reportType}:{fileType}`)
+- **Tool schemas**: `src/tools/schemas/` - Extracted Zod validation schemas (e.g., `save-report.schema.ts`). Also exports shared types like `REPORT_TYPES` constant and `ReportType` type.
+- **Storage**: `src/storage/report-storage.ts` - In-memory storage using Map with composite keys (`{taskId}:{reportType}`). The `reportType` must be one of the 12 valid workflow stages defined in `REPORT_TYPES`.
 - **Utilities**: `src/utils/` - Shared helper functions (e.g., `format-zod-error.ts`)
 
 ### Adding New Tools
@@ -63,3 +62,49 @@ Husky runs on commit: `pnpm run format` → `pnpm run lint:fix` → `git add -u`
 ## MCP
 
 - Use `server.registerTool` not `server.tool`.
+
+## Code style
+
+### Naming
+- Use descriptive names for interfaces without prefix, e.g. `StoredReport`, `SaveReportResult`
+
+## Code organization
+
+- Keep interfaces/types and implementation in different files.
+- Avoid keeping several elements in a single file. For example:
+
+Example of Good grouping in a single file:
+```typescript
+export const REPORT_TYPES = [
+	"requirements",
+	"plan",
+	"tests-design",
+	"tests-review",
+	"implementation",
+	"stabilization",
+	"acceptance",
+	"performance",
+	"security",
+	"refactoring",
+	"code-review",
+	"documentation",
+] as const;
+
+/**
+ * Type derived from REPORT_TYPES constant.
+ */
+export type ReportType = (typeof REPORT_TYPES)[number];
+```
+
+The reason why these elements should be kept together is because they are related very much, and they are too small to keep them separately.
+
+Example of bad grouping in a single file:
+
+```typescript
+// BAD: Mixing unrelated concerns - storage implementation with HTTP utilities
+export class ReportStorage { /* ... */ }
+export function formatHttpResponse() { /* ... */ }
+export const HTTP_STATUS_CODES = { /* ... */ };
+```
+
+The issue in code above is that storage logic and HTTP utilities serve different purposes and should be in separate files.

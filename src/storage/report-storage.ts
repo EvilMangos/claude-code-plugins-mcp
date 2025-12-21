@@ -1,18 +1,11 @@
-import { FileType } from "./types";
+import type { ReportType } from "../types/report-types";
+import type { StoredReport } from "../types/stored-report";
 
-export type { FileType };
-
-export interface StoredReport {
-	taskId: string;
-	reportType: string;
-	fileType: FileType;
-	content: string;
-	savedAt: string;
-}
+export type { StoredReport };
 
 /**
  * In-memory storage for workflow reports.
- * Uses a Map with composite key: {taskId}:{reportType}:{fileType}
+ * Uses a Map with composite key: {taskId}:{reportType}
  */
 class ReportStorage {
 	private storage: Map<string, StoredReport> = new Map();
@@ -20,31 +13,23 @@ class ReportStorage {
 	/**
 	 * Generate composite key from report fields.
 	 */
-	generateKey(taskId: string, reportType: string, fileType: string): string {
-		return `${taskId}:${reportType}:${fileType}`;
+	generateKey(taskId: string, reportType: ReportType): string {
+		return `${taskId}:${reportType}`;
 	}
 
 	/**
 	 * Save a report to storage.
 	 */
 	save(report: StoredReport): void {
-		const key = this.generateKey(
-			report.taskId,
-			report.reportType,
-			report.fileType
-		);
+		const key = this.generateKey(report.taskId, report.reportType);
 		this.storage.set(key, report);
 	}
 
 	/**
 	 * Get a report from storage.
 	 */
-	get(
-		taskId: string,
-		reportType: string,
-		fileType: string
-	): StoredReport | undefined {
-		const key = this.generateKey(taskId, reportType, fileType);
+	get(taskId: string, reportType: ReportType): StoredReport | undefined {
+		const key = this.generateKey(taskId, reportType);
 		return this.storage.get(key);
 	}
 
