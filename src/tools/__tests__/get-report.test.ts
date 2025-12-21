@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { reportService } from "../report.service";
-import { reportRepository } from "../../storage/report.repository";
+import { ReportServiceImpl } from "../report.service";
+import type { IReportRepository } from "../../types/report-repository.interface";
 import { ReportType } from "../../types/report.type";
 import { GetReportInput } from "../schemas/get-report.schema";
 import type { IStoredReport } from "../../types/stored-report.interface";
@@ -12,14 +12,15 @@ type TestGetReportInput = Omit<GetReportInput, "reportType"> & {
 	reportType: string;
 };
 
-// Mock the repository module
-vi.mock("../../storage/report-repository", () => ({
-	reportRepository: {
-		save: vi.fn(),
-		get: vi.fn(),
-		clear: vi.fn(),
-	},
-}));
+// Create mock repository
+const mockRepository: IReportRepository = {
+	save: vi.fn(),
+	get: vi.fn(),
+	clear: vi.fn(),
+};
+
+// Create service with mock repository
+const reportService = new ReportServiceImpl(mockRepository);
 
 describe("ReportService.getReport", () => {
 	beforeEach(() => {
@@ -81,7 +82,7 @@ describe("ReportService.getReport", () => {
 		it.concurrent(
 			"should accept valid taskId and proceed to repository lookup",
 			async () => {
-				vi.mocked(reportRepository.get).mockReturnValueOnce(undefined);
+				vi.mocked(mockRepository.get).mockReturnValueOnce(undefined);
 
 				const input: GetReportInput = {
 					taskId: "valid-task-id",
@@ -90,9 +91,8 @@ describe("ReportService.getReport", () => {
 
 				const result = await reportService.getReport(input);
 
-				// If taskId is valid, it should at least query repository (not return validation error)
 				expect(result.success).toBe(true);
-				expect(reportRepository.get).toHaveBeenCalled();
+				expect(mockRepository.get).toHaveBeenCalled();
 			}
 		);
 	});
@@ -159,7 +159,7 @@ describe("ReportService.getReport", () => {
 		);
 
 		it.concurrent("should accept all 12 valid report types", async () => {
-			vi.mocked(reportRepository.get).mockReturnValue(undefined);
+			vi.mocked(mockRepository.get).mockReturnValue(undefined);
 
 			const validTypes: ReportType[] = [
 				"requirements",
@@ -186,7 +186,6 @@ describe("ReportService.getReport", () => {
 			);
 
 			results.forEach((result) => {
-				// Success because validation passed (even if report not found)
 				expect(result.success).toBe(true);
 			});
 		});
@@ -231,7 +230,7 @@ describe("ReportService.getReport", () => {
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
 
-				vi.mocked(reportRepository.get).mockReturnValueOnce(storedReport);
+				vi.mocked(mockRepository.get).mockReturnValueOnce(storedReport);
 
 				const input: GetReportInput = {
 					taskId: "develop-feature-auth-123",
@@ -257,7 +256,7 @@ describe("ReportService.getReport", () => {
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
 
-				vi.mocked(reportRepository.get).mockReturnValueOnce(storedReport);
+				vi.mocked(mockRepository.get).mockReturnValueOnce(storedReport);
 
 				const input: GetReportInput = {
 					taskId: "task-id-1",
@@ -274,7 +273,7 @@ describe("ReportService.getReport", () => {
 		it.concurrent(
 			"should call repository.get with correct taskId and reportType",
 			async () => {
-				vi.mocked(reportRepository.get).mockReturnValueOnce(undefined);
+				vi.mocked(mockRepository.get).mockReturnValueOnce(undefined);
 
 				const input: GetReportInput = {
 					taskId: "my-task-id",
@@ -283,7 +282,7 @@ describe("ReportService.getReport", () => {
 
 				await reportService.getReport(input);
 
-				expect(reportRepository.get).toHaveBeenCalledWith(
+				expect(mockRepository.get).toHaveBeenCalledWith(
 					"my-task-id",
 					"implementation"
 				);
@@ -295,7 +294,7 @@ describe("ReportService.getReport", () => {
 		it.concurrent(
 			"should return success true with content null when report not found",
 			async () => {
-				vi.mocked(reportRepository.get).mockReturnValueOnce(undefined);
+				vi.mocked(mockRepository.get).mockReturnValueOnce(undefined);
 
 				const input: GetReportInput = {
 					taskId: "non-existent-task",
@@ -314,7 +313,7 @@ describe("ReportService.getReport", () => {
 		it.concurrent(
 			"should not return error when report is not found",
 			async () => {
-				vi.mocked(reportRepository.get).mockReturnValueOnce(undefined);
+				vi.mocked(mockRepository.get).mockReturnValueOnce(undefined);
 
 				const input: GetReportInput = {
 					taskId: "non-existent-task",
@@ -333,7 +332,7 @@ describe("ReportService.getReport", () => {
 		it.concurrent(
 			"should handle repository exceptions gracefully",
 			async () => {
-				vi.mocked(reportRepository.get).mockImplementationOnce(() => {
+				vi.mocked(mockRepository.get).mockImplementationOnce(() => {
 					throw new Error("Storage failure");
 				});
 
@@ -354,8 +353,8 @@ describe("ReportService.getReport", () => {
 		it.concurrent(
 			"should handle non-Error thrown objects gracefully",
 			async () => {
-				vi.mocked(reportRepository.get).mockImplementationOnce(() => {
-					throw "String error"; // Non-Error thrown
+				vi.mocked(mockRepository.get).mockImplementationOnce(() => {
+					throw "String error";
 				});
 
 				const input: GetReportInput = {
@@ -373,7 +372,7 @@ describe("ReportService.getReport", () => {
 		it.concurrent(
 			"should return error structure with success false and error message",
 			async () => {
-				vi.mocked(reportRepository.get).mockImplementationOnce(() => {
+				vi.mocked(mockRepository.get).mockImplementationOnce(() => {
 					throw new Error("Internal database error");
 				});
 
@@ -391,9 +390,6 @@ describe("ReportService.getReport", () => {
 		);
 	});
 
-	// ============================================================
-	// Edge Cases
-	// ============================================================
 	describe("Edge Cases", () => {
 		it.concurrent("should handle concurrent get calls", async () => {
 			const storedReports: IStoredReport[] = [
@@ -417,7 +413,7 @@ describe("ReportService.getReport", () => {
 				},
 			];
 
-			vi.mocked(reportRepository.get)
+			vi.mocked(mockRepository.get)
 				.mockReturnValueOnce(storedReports[0])
 				.mockReturnValueOnce(storedReports[1])
 				.mockReturnValueOnce(storedReports[2]);
@@ -438,7 +434,7 @@ describe("ReportService.getReport", () => {
 		});
 
 		it.concurrent("should handle taskId with various formats", async () => {
-			vi.mocked(reportRepository.get).mockReturnValue(undefined);
+			vi.mocked(mockRepository.get).mockReturnValue(undefined);
 
 			const taskIds = [
 				"develop-feature-auth-123",
@@ -465,7 +461,7 @@ describe("ReportService.getReport", () => {
 		it.concurrent(
 			"should return report with large content unchanged",
 			async () => {
-				const largeContent = "x".repeat(1000000); // 1MB of content
+				const largeContent = "x".repeat(1000000);
 				const storedReport: IStoredReport = {
 					taskId: "task-large",
 					reportType: "requirements",
@@ -473,7 +469,7 @@ describe("ReportService.getReport", () => {
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
 
-				vi.mocked(reportRepository.get).mockReturnValueOnce(storedReport);
+				vi.mocked(mockRepository.get).mockReturnValueOnce(storedReport);
 
 				const input: GetReportInput = {
 					taskId: "task-large",
@@ -500,7 +496,7 @@ describe("ReportService.getReport", () => {
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
 
-				vi.mocked(reportRepository.get).mockReturnValueOnce(storedReport);
+				vi.mocked(mockRepository.get).mockReturnValueOnce(storedReport);
 
 				const input: GetReportInput = {
 					taskId: "task-special",
@@ -539,7 +535,7 @@ const code = "example";
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
 
-				vi.mocked(reportRepository.get).mockReturnValueOnce(storedReport);
+				vi.mocked(mockRepository.get).mockReturnValueOnce(storedReport);
 
 				const input: GetReportInput = {
 					taskId: "task-markdown",
@@ -554,9 +550,6 @@ const code = "example";
 		);
 	});
 
-	// ============================================================
-	// Multiple Validation Errors
-	// ============================================================
 	describe("Multiple Validation Errors", () => {
 		it.concurrent(
 			"should return error when multiple fields are invalid",

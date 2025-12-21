@@ -5,6 +5,8 @@ import {
 	setupTestServerWithTools,
 } from "./helpers/mcp-test-utils";
 import { REPORT_TYPES } from "../types/report.type";
+import { TOKENS, container } from "../container";
+import { IReportStorage } from "../types/report-storage.interface";
 
 /**
  * Integration tests for MCP tool registration.
@@ -158,7 +160,7 @@ describe("MCP Server Tool Registration", () => {
 				// This test verifies the integration between:
 				// - The tool registration module
 				// - The saveReport function
-				// - The storage module
+				// - The report-repository module
 
 				const { saveReportTool } = await setupTestServerWithTools();
 
@@ -175,8 +177,10 @@ describe("MCP Server Tool Registration", () => {
 				const parsedResult = JSON.parse(saveResult.content[0].text);
 				expect(parsedResult.success).toBe(true);
 
-				// Verify the report was stored by checking storage
-				const { reportStorage } = await import("../storage/report.storage");
+				// Verify the report was stored by checking report-repository via container
+				const reportStorage = container.get<IReportStorage>(
+					TOKENS.ReportStorage
+				);
 				const storedReport = reportStorage.get(
 					"integration-test-123",
 					"implementation"
@@ -362,7 +366,7 @@ describe("MCP Server Tool Registration", () => {
 				// This test verifies the integration between:
 				// - The tool registration module
 				// - The getReport function
-				// - The storage module
+				// - The report-repository module
 
 				const { saveReportTool, getReportTool } =
 					await setupTestServerWithTools();
@@ -390,8 +394,10 @@ describe("MCP Server Tool Registration", () => {
 				expect(parsedResult.success).toBe(true);
 				expect(parsedResult.content).toBe("Security integration test content");
 
-				// Verify consistency with direct storage access
-				const { reportStorage } = await import("../storage/report.storage");
+				// Verify consistency with direct report-repository access via container
+				const reportStorage = container.get<IReportStorage>(
+					TOKENS.ReportStorage
+				);
 				const storedReport = reportStorage.get(
 					"integration-module-test-789",
 					"security"

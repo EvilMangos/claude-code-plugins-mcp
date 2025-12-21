@@ -5,6 +5,7 @@
  * in MCP tool registration tests.
  */
 
+import "reflect-metadata";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 /**
@@ -156,6 +157,10 @@ export function extractEnumValues(
  * @returns An object containing the server, registered tools, save-report tool, and get-report tool.
  */
 export async function setupTestServerWithTools(): Promise<TestServerSetup> {
+	// Setup the DI container before registering tools
+	const { setupContainer } = await import("../../container");
+	setupContainer();
+
 	const server = createTestServer();
 	const { registerTools } = await import("../../tools/register");
 	registerTools(server);

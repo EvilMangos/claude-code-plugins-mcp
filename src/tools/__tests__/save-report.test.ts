@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { reportService } from "../report.service";
-import { reportRepository } from "../../storage/report.repository";
+import { ReportServiceImpl } from "../report.service";
+import type { IReportRepository } from "../../types/report-repository.interface";
 import { REPORT_TYPES, ReportType } from "../../types/report.type";
 import { SaveReportInput } from "../schemas/save-report.schema";
 
@@ -11,20 +11,19 @@ type TestSaveReportInput = Omit<SaveReportInput, "reportType"> & {
 	reportType: string;
 };
 
-// Mock the repository module
-vi.mock("../../storage/report-repository", () => ({
-	reportRepository: {
-		save: vi.fn(),
-		get: vi.fn(),
-		clear: vi.fn(),
-	},
-}));
+// Create mock repository
+const mockRepository: IReportRepository = {
+	save: vi.fn(),
+	get: vi.fn(),
+	clear: vi.fn(),
+};
+
+// Create service with mock repository
+const reportService = new ReportServiceImpl(mockRepository);
 
 describe("ReportService.saveReport", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		// Note: Timestamp generation is now handled by the repository
-		// Tool handlers no longer need to mock Date for timestamp testing
 	});
 
 	afterEach(() => {
@@ -58,8 +57,7 @@ describe("ReportService.saveReport", () => {
 
 				await reportService.saveReport(input);
 
-				// Handler now calls save(taskId, reportType, content) without timestamp
-				expect(reportRepository.save).toHaveBeenCalledWith(
+				expect(mockRepository.save).toHaveBeenCalledWith(
 					"develop-feature-auth-123",
 					"implementation",
 					"# Implementation Report"
@@ -78,17 +76,13 @@ describe("ReportService.saveReport", () => {
 
 				await reportService.saveReport(input);
 
-				// Verify save is called with only 3 arguments (no timestamp)
-				expect(reportRepository.save).toHaveBeenCalledWith(
+				expect(mockRepository.save).toHaveBeenCalledWith(
 					"task-id-1",
 					"plan",
 					"# Plan Content"
 				);
-				// Verify the call with matching arguments has exactly 3 arguments (no timestamp)
-				// Note: We find the specific call for this test instead of using toHaveBeenCalledTimes(1)
-				// because it.concurrent shares mocks across parallel tests
 				const matchingCall = vi
-					.mocked(reportRepository.save)
+					.mocked(mockRepository.save)
 					.mock.calls.find(
 						(call) =>
 							call[0] === "task-id-1" &&
@@ -274,8 +268,7 @@ describe("ReportService.saveReport", () => {
 				const result = await reportService.saveReport(input);
 
 				expect(result).toEqual({ success: true });
-				// Repository.save should be called and handle overwrite internally
-				expect(reportRepository.save).toHaveBeenCalledWith(
+				expect(mockRepository.save).toHaveBeenCalledWith(
 					"task-123",
 					"requirements",
 					"Updated content"
@@ -298,13 +291,12 @@ describe("ReportService.saveReport", () => {
 			await reportService.saveReport(input1);
 			await reportService.saveReport(input2);
 
-			// Both saves should be called independently with their respective data
-			expect(reportRepository.save).toHaveBeenCalledWith(
+			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-different-keys-1",
 				"requirements",
 				"Requirements content"
 			);
-			expect(reportRepository.save).toHaveBeenCalledWith(
+			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-different-keys-1",
 				"implementation",
 				"Implementation content"
@@ -508,12 +500,9 @@ describe("ReportService.saveReport", () => {
 		it.concurrent(
 			"should export ReportType type (compile-time verification)",
 			() => {
-				// This test verifies TypeScript compilation succeeds with ReportType
-				// If ReportType is not exported, this file will fail to compile
 				const validType: ReportType = "requirements";
 				expect(validType).toBe("requirements");
 
-				// TypeScript should allow all valid types
 				const types: ReportType[] = [
 					"requirements",
 					"plan",
@@ -568,7 +557,7 @@ describe("ReportService.saveReport", () => {
 		);
 
 		it.concurrent("should handle repository errors gracefully", async () => {
-			vi.mocked(reportRepository.save).mockImplementationOnce(() => {
+			vi.mocked(mockRepository.save).mockImplementationOnce(() => {
 				throw new Error("Storage failure");
 			});
 
@@ -589,7 +578,7 @@ describe("ReportService.saveReport", () => {
 		it.concurrent(
 			"should not expose internal error details for unexpected errors",
 			async () => {
-				vi.mocked(reportRepository.save).mockImplementationOnce(() => {
+				vi.mocked(mockRepository.save).mockImplementationOnce(() => {
 					throw new Error("Internal database connection pool exhausted");
 				});
 
@@ -607,12 +596,9 @@ describe("ReportService.saveReport", () => {
 		);
 	});
 
-	// ============================================================
-	// Edge Cases
-	// ============================================================
 	describe("Edge Cases", () => {
 		it.concurrent("should handle very large content", async () => {
-			const largeContent = "x".repeat(1000000); // 1MB of content
+			const largeContent = "x".repeat(1000000);
 			const input: SaveReportInput = {
 				taskId: "task-123",
 				reportType: "requirements",
@@ -716,18 +702,17 @@ const code = "example";
 				{ success: true },
 			]);
 
-			// Verify each concurrent call was made with correct data
-			expect(reportRepository.save).toHaveBeenCalledWith(
+			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-concurrent-1",
 				"requirements",
 				"c1"
 			);
-			expect(reportRepository.save).toHaveBeenCalledWith(
+			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-concurrent-2",
 				"plan",
 				"c2"
 			);
-			expect(reportRepository.save).toHaveBeenCalledWith(
+			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-concurrent-3",
 				"implementation",
 				"c3"

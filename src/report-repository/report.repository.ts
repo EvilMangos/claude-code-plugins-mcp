@@ -1,15 +1,22 @@
+import { inject, injectable } from "inversify";
+import { TOKENS } from "../container";
 import type { ReportType } from "../types/report.type";
 import type { IReportRepository } from "../types/report-repository.interface";
+import type { IReportStorage } from "../types/report-storage.interface";
 import type { IStoredReport } from "../types/stored-report.interface";
-import { reportStorage } from "./report.storage";
 
 /**
  * Repository for managing workflow reports.
- * Wraps the underlying storage implementation and handles timestamp generation.
+ * Wraps the underlying report-repository implementation and handles timestamp generation.
  */
-class ReportRepositoryImpl implements IReportRepository {
+@injectable()
+export class ReportRepositoryImpl implements IReportRepository {
+	constructor(
+		@inject(TOKENS.ReportStorage) private readonly storage: IReportStorage
+	) {}
+
 	/**
-	 * Save a report to storage with auto-generated timestamp.
+	 * Save a report to report-repository with auto-generated timestamp.
 	 * @param taskId - The task identifier
 	 * @param reportType - The type of report (workflow stage)
 	 * @param content - The report content
@@ -21,26 +28,24 @@ class ReportRepositoryImpl implements IReportRepository {
 			content,
 			savedAt: new Date().toISOString(),
 		};
-		reportStorage.save(storedReport);
+		this.storage.save(storedReport);
 	}
 
 	/**
-	 * Get a report from storage.
+	 * Get a report from report-repository.
 	 * @param taskId - The task identifier
 	 * @param reportType - The type of report (workflow stage)
 	 * @returns The stored report if found, undefined otherwise
 	 */
 	get(taskId: string, reportType: ReportType): IStoredReport | undefined {
-		return reportStorage.get(taskId, reportType);
+		return this.storage.get(taskId, reportType);
 	}
 
 	/**
-	 * Clear all reports from storage.
+	 * Clear all reports from report-repository.
 	 * Useful for test isolation.
 	 */
 	clear(): void {
-		reportStorage.clear();
+		this.storage.clear();
 	}
 }
-
-export const reportRepository: IReportRepository = new ReportRepositoryImpl();

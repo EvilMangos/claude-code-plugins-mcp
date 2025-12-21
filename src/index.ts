@@ -1,6 +1,11 @@
+import "reflect-metadata";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { setupContainer } from "./container";
 import { registerTools } from "./tools/register";
+
+// Setup dependency injection container
+setupContainer();
 
 // Create MCP server
 const server = new McpServer({

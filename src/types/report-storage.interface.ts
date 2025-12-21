@@ -2,21 +2,27 @@ import type { ReportType } from "./report.type";
 import type { IStoredReport } from "./stored-report.interface";
 
 /**
- * Interface for report repository operations.
+ * Interface for report report-repository operations.
  */
-export interface IReportRepository {
+export interface IReportStorage {
 	/**
-	 * Save a report to report-repository with auto-generated timestamp.
+	 * Generate composite key from report fields.
 	 * @param taskId - The task identifier
-	 * @param reportType - The type of report (workflow stage)
-	 * @param content - The report content
+	 * @param reportType - The type of report
+	 * @returns The composite key
 	 */
-	save(taskId: string, reportType: ReportType, content: string): void;
+	generateKey(taskId: string, reportType: ReportType): string;
+
+	/**
+	 * Save a report to report-repository.
+	 * @param report - The report to save
+	 */
+	save(report: IStoredReport): void;
 
 	/**
 	 * Get a report from report-repository.
 	 * @param taskId - The task identifier
-	 * @param reportType - The type of report (workflow stage)
+	 * @param reportType - The type of report
 	 * @returns The stored report if found, undefined otherwise
 	 */
 	get(taskId: string, reportType: ReportType): IStoredReport | undefined;

@@ -106,7 +106,7 @@ The reason why these elements should be kept together is because they are relate
 Example of bad grouping in a single file:
 
 ```typescript
-// BAD: Mixing unrelated concerns - storage implementation with HTTP utilities
+// BAD: Mixing unrelated concerns - report-repository implementation with HTTP utilities
 export class ReportStorage { /* ... */ }
 export function formatHttpResponse() { /* ... */ }
 export const HTTP_STATUS_CODES = { /* ... */ };

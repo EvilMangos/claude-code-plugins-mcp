@@ -8,14 +8,14 @@ import type { SaveReportInput } from "../tools/schemas/save-report.schema";
  */
 export interface IReportService {
 	/**
-	 * Save a workflow report to storage.
+	 * Save a workflow report to report-repository.
 	 * @param input - The report input containing taskId, reportType, and content
 	 * @returns A result object with success status and optional error message
 	 */
 	saveReport(input: SaveReportInput): Promise<ISaveReportResult>;
 
 	/**
-	 * Get a workflow report from storage.
+	 * Get a workflow report from report-repository.
 	 * @param input - The report input containing taskId and reportType
 	 * @returns A result object with success status and optional report or error message
 	 */

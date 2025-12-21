@@ -1,11 +1,14 @@
+import { injectable } from "inversify";
 import type { ReportType } from "../types/report.type";
+import type { IReportStorage } from "../types/report-storage.interface";
 import type { IStoredReport } from "../types/stored-report.interface";
 
 /**
- * In-memory storage for workflow reports.
+ * In-memory report-repository for workflow reports.
  * Uses a Map with composite key: {taskId}:{reportType}
  */
-class ReportStorage {
+@injectable()
+export class ReportStorageImpl implements IReportStorage {
 	private storage: Map<string, IStoredReport> = new Map();
 
 	/**
@@ -16,7 +19,7 @@ class ReportStorage {
 	}
 
 	/**
-	 * Save a report to storage.
+	 * Save a report to report-repository.
 	 */
 	save(report: IStoredReport): void {
 		const key = this.generateKey(report.taskId, report.reportType);
@@ -24,7 +27,7 @@ class ReportStorage {
 	}
 
 	/**
-	 * Get a report from storage.
+	 * Get a report from report-repository.
 	 */
 	get(taskId: string, reportType: ReportType): IStoredReport | undefined {
 		const key = this.generateKey(taskId, reportType);
@@ -32,11 +35,9 @@ class ReportStorage {
 	}
 
 	/**
-	 * Clear all reports from storage.
+	 * Clear all reports from report-repository.
 	 */
 	clear(): void {
 		this.storage.clear();
 	}
 }
-
-export const reportStorage = new ReportStorage();

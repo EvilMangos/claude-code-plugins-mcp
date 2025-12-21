@@ -1,26 +1,21 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ReportRepositoryImpl } from "../report.repository";
+import type { IReportStorage } from "../../types/report-storage.interface";
 import type { ReportType } from "../../types/report.type";
 import type { IStoredReport } from "../../types/stored-report.interface";
 
-// Mock the report-storage module before importing report-repository
-vi.mock("../report-storage", () => {
-	const mockStorage = {
-		save: vi.fn(),
-		get: vi.fn(),
-		clear: vi.fn(),
-		generateKey: vi.fn(
-			(taskId: string, reportType: string) => `${taskId}:${reportType}`
-		),
-	};
-	return {
-		ReportStorage: vi.fn(() => mockStorage),
-		reportStorage: mockStorage,
-	};
-});
+// Create mock report-repository
+const mockStorage: IReportStorage = {
+	save: vi.fn(),
+	get: vi.fn(),
+	clear: vi.fn(),
+	generateKey: vi.fn(
+		(taskId: string, reportType: string) => `${taskId}:${reportType}`
+	),
+};
 
-// Import after mocking
-import { reportRepository } from "../report.repository";
-import { reportStorage } from "../report.storage";
+// Create repository with mock report-repository
+const reportRepository = new ReportRepositoryImpl(mockStorage);
 
 describe("ReportRepository", () => {
 	beforeEach(() => {
@@ -35,9 +30,10 @@ describe("ReportRepository", () => {
 	});
 
 	describe("Create ReportRepository Class", () => {
-		it("should export a reportRepository singleton instance", () => {
-			expect(reportRepository).toBeDefined();
-			expect(typeof reportRepository).toBe("object");
+		it("should be instantiable with report-repository dependency", () => {
+			const repo = new ReportRepositoryImpl(mockStorage);
+			expect(repo).toBeDefined();
+			expect(typeof repo).toBe("object");
 		});
 
 		it("should have save method", () => {
@@ -61,7 +57,7 @@ describe("ReportRepository", () => {
 
 			reportRepository.save(taskId, reportType, content);
 
-			expect(reportStorage.save).toHaveBeenCalledWith({
+			expect(mockStorage.save).toHaveBeenCalledWith({
 				taskId: "develop-feature-auth-123",
 				reportType: "requirements",
 				content: "# Requirements Report\n\nThis is the content.",
@@ -69,15 +65,15 @@ describe("ReportRepository", () => {
 			});
 		});
 
-		it("should delegate to internal storage with correct StoredReport object", () => {
+		it("should delegate to internal report-repository with correct StoredReport object", () => {
 			const taskId = "task-123";
 			const reportType: ReportType = "plan";
 			const content = "# Plan Content";
 
 			reportRepository.save(taskId, reportType, content);
 
-			expect(reportStorage.save).toHaveBeenCalledTimes(1);
-			expect(reportStorage.save).toHaveBeenCalledWith(
+			expect(mockStorage.save).toHaveBeenCalledTimes(1);
+			expect(mockStorage.save).toHaveBeenCalledWith(
 				expect.objectContaining({
 					taskId: "task-123",
 					reportType: "plan",
@@ -98,7 +94,7 @@ describe("ReportRepository", () => {
 			reportRepository.save(taskId, reportType, "Second content");
 
 			// Verify first call had original timestamp
-			expect(reportStorage.save).toHaveBeenNthCalledWith(
+			expect(mockStorage.save).toHaveBeenNthCalledWith(
 				1,
 				expect.objectContaining({
 					savedAt: "2025-01-15T10:30:00.000Z",
@@ -106,7 +102,7 @@ describe("ReportRepository", () => {
 			);
 
 			// Verify second call had updated timestamp
-			expect(reportStorage.save).toHaveBeenNthCalledWith(
+			expect(mockStorage.save).toHaveBeenNthCalledWith(
 				2,
 				expect.objectContaining({
 					savedAt: "2025-01-15T10:31:00.000Z",
@@ -138,13 +134,13 @@ describe("ReportRepository", () => {
 				);
 			});
 
-			expect(reportStorage.save).toHaveBeenCalledTimes(12);
+			expect(mockStorage.save).toHaveBeenCalledTimes(12);
 		});
 
 		it("should handle empty content string", () => {
 			reportRepository.save("task-123", "requirements", "");
 
-			expect(reportStorage.save).toHaveBeenCalledWith(
+			expect(mockStorage.save).toHaveBeenCalledWith(
 				expect.objectContaining({
 					content: "",
 				})
@@ -157,7 +153,7 @@ describe("ReportRepository", () => {
 
 			reportRepository.save("task-123", "requirements", specialContent);
 
-			expect(reportStorage.save).toHaveBeenCalledWith(
+			expect(mockStorage.save).toHaveBeenCalledWith(
 				expect.objectContaining({
 					content: specialContent,
 				})
@@ -169,7 +165,7 @@ describe("ReportRepository", () => {
 
 			reportRepository.save("task-123", "requirements", largeContent);
 
-			expect(reportStorage.save).toHaveBeenCalledWith(
+			expect(mockStorage.save).toHaveBeenCalledWith(
 				expect.objectContaining({
 					content: largeContent,
 				})
@@ -178,7 +174,7 @@ describe("ReportRepository", () => {
 	});
 
 	describe("get() method", () => {
-		it("should delegate to internal storage and return StoredReport when found", () => {
+		it("should delegate to internal report-repository and return StoredReport when found", () => {
 			const storedReport: IStoredReport = {
 				taskId: "develop-feature-auth-123",
 				reportType: "requirements",
@@ -186,14 +182,14 @@ describe("ReportRepository", () => {
 				savedAt: "2025-01-15T10:30:00.000Z",
 			};
 
-			vi.mocked(reportStorage.get).mockReturnValueOnce(storedReport);
+			vi.mocked(mockStorage.get).mockReturnValueOnce(storedReport);
 
 			const result = reportRepository.get(
 				"develop-feature-auth-123",
 				"requirements"
 			);
 
-			expect(reportStorage.get).toHaveBeenCalledWith(
+			expect(mockStorage.get).toHaveBeenCalledWith(
 				"develop-feature-auth-123",
 				"requirements"
 			);
@@ -201,30 +197,30 @@ describe("ReportRepository", () => {
 		});
 
 		it("should return undefined when report not found", () => {
-			vi.mocked(reportStorage.get).mockReturnValueOnce(undefined);
+			vi.mocked(mockStorage.get).mockReturnValueOnce(undefined);
 
 			const result = reportRepository.get("non-existent-task", "requirements");
 
-			expect(reportStorage.get).toHaveBeenCalledWith(
+			expect(mockStorage.get).toHaveBeenCalledWith(
 				"non-existent-task",
 				"requirements"
 			);
 			expect(result).toBeUndefined();
 		});
 
-		it("should call storage.get with correct taskId and reportType", () => {
-			vi.mocked(reportStorage.get).mockReturnValueOnce(undefined);
+		it("should call report-repository.get with correct taskId and reportType", () => {
+			vi.mocked(mockStorage.get).mockReturnValueOnce(undefined);
 
 			reportRepository.get("my-task-id", "implementation");
 
-			expect(reportStorage.get).toHaveBeenCalledWith(
+			expect(mockStorage.get).toHaveBeenCalledWith(
 				"my-task-id",
 				"implementation"
 			);
 		});
 
 		it("should accept all 12 valid report types", () => {
-			vi.mocked(reportStorage.get).mockReturnValue(undefined);
+			vi.mocked(mockStorage.get).mockReturnValue(undefined);
 
 			const validTypes: ReportType[] = [
 				"requirements",
@@ -245,37 +241,22 @@ describe("ReportRepository", () => {
 				reportRepository.get("task-id", reportType);
 			});
 
-			expect(reportStorage.get).toHaveBeenCalledTimes(12);
+			expect(mockStorage.get).toHaveBeenCalledTimes(12);
 		});
 	});
 
 	describe("clear() method", () => {
-		it("should delegate to internal storage clear method", () => {
+		it("should delegate to internal report-repository clear method", () => {
 			reportRepository.clear();
 
-			expect(reportStorage.clear).toHaveBeenCalledTimes(1);
+			expect(mockStorage.clear).toHaveBeenCalledTimes(1);
 		});
 
 		it("should be callable for test isolation", () => {
-			// This test verifies clear() exists and can be called
-			// Used for resetting state between tests
 			expect(() => reportRepository.clear()).not.toThrow();
 		});
 	});
 
-	describe("Singleton pattern", () => {
-		it("should export reportRepository as a singleton", async () => {
-			// Re-import to verify same instance
-			const { reportRepository: repo1 } = await import("../report.repository");
-			const { reportRepository: repo2 } = await import("../report.repository");
-
-			expect(repo1).toBe(repo2);
-		});
-	});
-
-	// ============================================================
-	// Edge Cases
-	// ============================================================
 	describe("Edge Cases", () => {
 		it("should handle taskId with various formats", () => {
 			const taskIds = [
@@ -290,7 +271,7 @@ describe("ReportRepository", () => {
 				reportRepository.save(taskId, "requirements", "content");
 			});
 
-			expect(reportStorage.save).toHaveBeenCalledTimes(5);
+			expect(mockStorage.save).toHaveBeenCalledTimes(5);
 		});
 
 		it("should handle concurrent save calls", async () => {
@@ -308,11 +289,11 @@ describe("ReportRepository", () => {
 
 			await Promise.all(saves);
 
-			expect(reportStorage.save).toHaveBeenCalledTimes(3);
+			expect(mockStorage.save).toHaveBeenCalledTimes(3);
 		});
 
 		it("should handle concurrent get calls", async () => {
-			vi.mocked(reportStorage.get).mockReturnValue(undefined);
+			vi.mocked(mockStorage.get).mockReturnValue(undefined);
 
 			const gets = [
 				Promise.resolve().then(() =>
@@ -326,7 +307,7 @@ describe("ReportRepository", () => {
 
 			await Promise.all(gets);
 
-			expect(reportStorage.get).toHaveBeenCalledTimes(3);
+			expect(mockStorage.get).toHaveBeenCalledTimes(3);
 		});
 	});
 });
