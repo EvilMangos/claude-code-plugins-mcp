@@ -13,7 +13,9 @@
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write 'src/**/*.ts'",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [
     "mcp",
@@ -39,7 +41,8 @@
     "husky": "^8.0.3",
     "jiti": "^2.6.1",
     "prettier": "^3.7.4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=18"
