@@ -1,10 +1,10 @@
-import { StoredReport, reportStorage } from "../storage/report-storage.js";
-import { formatZodError } from "../utils/format-zod-error.js";
+import { StoredReport, reportStorage } from "../storage/report-storage";
+import { formatZodError } from "../utils/format-zod-error";
 import {
 	SaveReportInput,
 	SaveReportResult,
 	saveReportSchema,
-} from "./schemas/save-report.schema.js";
+} from "./schemas/save-report.schema";
 
 /**
  * Save a workflow report to in-memory storage.

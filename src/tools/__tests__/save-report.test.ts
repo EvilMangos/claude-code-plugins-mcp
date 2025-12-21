@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { saveReport } from "../save-report.js";
-import { reportStorage } from "../../storage/report-storage.js";
-import { SaveReportInput } from "../schemas/save-report.schema.js";
+import { saveReport } from "../save-report";
+import { reportStorage } from "../../storage/report-storage";
+import { SaveReportInput } from "../schemas/save-report.schema";
 
 // Mock the storage module
-vi.mock("../../storage/report-storage.js", () => ({
+vi.mock("../../storage/report-storage", () => ({
 	reportStorage: {
 		save: vi.fn(),
 		get: vi.fn(),

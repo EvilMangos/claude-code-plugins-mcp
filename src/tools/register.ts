@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { saveReport } from "./save-report.js";
-import { saveReportSchema } from "./schemas/save-report.schema.js";
+import { saveReport } from "./save-report";
+import { saveReportSchema } from "./schemas/save-report.schema";
 
 /**
  * Register all MCP tools with the server.

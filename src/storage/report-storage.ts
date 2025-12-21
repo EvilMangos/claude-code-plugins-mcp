@@ -1,4 +1,4 @@
-import { FileType } from "./types.js";
+import { FileType } from "./types";
 
 export type { FileType };
 

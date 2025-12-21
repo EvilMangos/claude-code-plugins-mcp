@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { setupTestServerWithTools } from "./helpers/mcp-test-utils.js";
+import { setupTestServerWithTools } from "./helpers/mcp-test-utils";
 
 /**
  * Integration tests for MCP tool registration.
@@ -178,7 +178,7 @@ describe("MCP Server Tool Registration", () => {
 			expect(parsedResult.success).toBe(true);
 
 			// Verify the report was stored by checking storage
-			const { reportStorage } = await import("../storage/report-storage.js");
+			const { reportStorage } = await import("../storage/report-storage");
 			const storedReport = reportStorage.get(
 				"integration-test-123",
 				"implementation",

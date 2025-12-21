@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FILE_TYPES } from "../../storage/types.js";
+import { FILE_TYPES } from "../../storage/types";
 
 /**
  * Zod schema for save-report input validation.

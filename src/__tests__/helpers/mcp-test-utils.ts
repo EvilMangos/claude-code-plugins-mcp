@@ -5,7 +5,7 @@
  * in MCP tool registration tests.
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
 
 /**
  * Type for the internal _registeredTools object on McpServer.
@@ -81,7 +81,7 @@ export interface TestServerSetup {
  */
 export async function setupTestServerWithTools(): Promise<TestServerSetup> {
 	const server = createTestServer();
-	const { registerTools } = await import("../../tools/register.js");
+	const { registerTools } = await import("../../tools/register");
 	registerTools(server);
 
 	const registeredTools = getRegisteredTools(server);
