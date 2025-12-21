@@ -1,5 +1,6 @@
 import { StoredReport, reportStorage } from "../storage/report-storage";
 import type { SaveReportResult } from "../types/save-report-result";
+import { formatStorageError } from "../utils/format-storage-error";
 import { formatZodError } from "../utils/format-zod-error";
 import {
 	SaveReportInput,
@@ -40,12 +41,9 @@ export async function saveReport(
 
 		return { success: true };
 	} catch (error) {
-		// Handle storage errors
-		const errorMessage =
-			error instanceof Error ? error.message : "Unknown storage error";
 		return {
 			success: false,
-			error: errorMessage,
+			error: formatStorageError(error),
 		};
 	}
 }

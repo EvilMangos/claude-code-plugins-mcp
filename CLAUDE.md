@@ -38,9 +38,10 @@ The server uses stdio transport for MCP communication:
 
 - **Entry point**: `src/index.ts` - Creates McpServer and connects via StdioServerTransport
 - **Tool registration**: `src/tools/register.ts` - Registers MCP tools with Zod schemas
-- **Tool schemas**: `src/tools/schemas/` - Extracted Zod validation schemas (e.g., `save-report.schema.ts`). Also exports shared types like `REPORT_TYPES` constant and `ReportType` type.
+- **Tool schemas**: `src/tools/schemas/` - Extracted Zod validation schemas (e.g., `save-report.schema.ts`, `get-report.schema.ts`, `shared.schema.ts`). Shared schemas like `taskIdSchema` are reused across tool schemas.
+- **Types**: `src/types/` - Shared types and constants (e.g., `report-types.ts` exports `REPORT_TYPES` constant and `ReportType` type)
 - **Storage**: `src/storage/report-storage.ts` - In-memory storage using Map with composite keys (`{taskId}:{reportType}`). The `reportType` must be one of the 12 valid workflow stages defined in `REPORT_TYPES`.
-- **Utilities**: `src/utils/` - Shared helper functions (e.g., `format-zod-error.ts`)
+- **Utilities**: `src/utils/` - Shared helper functions (e.g., `format-zod-error.ts`, `format-storage-error.ts`)
 
 ### Adding New Tools
 

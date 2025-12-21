@@ -34,6 +34,18 @@ export interface SaveReportToolDefinition {
 }
 
 /**
+ * Interface for the get-report tool definition as retrieved from _registeredTools.
+ */
+export interface GetReportToolDefinition {
+	handler?: ToolHandler;
+	inputSchema?: {
+		shape?: Record<string, unknown>;
+		_def?: { shape?: () => Record<string, unknown> };
+	};
+	description?: string;
+}
+
+/**
  * Creates a fresh McpServer instance for testing.
  * @returns A new McpServer configured for testing.
  */
@@ -66,12 +78,23 @@ export function getSaveReportTool(server: McpServer): SaveReportToolDefinition {
 }
 
 /**
+ * Gets the get-report tool from the registered tools with proper typing.
+ * @param server - The McpServer instance with tools registered.
+ * @returns The get-report tool definition.
+ */
+export function getGetReportTool(server: McpServer): GetReportToolDefinition {
+	const registeredTools = getRegisteredTools(server);
+	return registeredTools["get-report"] as GetReportToolDefinition;
+}
+
+/**
  * Result of setupTestServerWithTools containing useful objects for testing.
  */
 export interface TestServerSetup {
 	server: McpServer;
 	registeredTools: RegisteredTools;
 	saveReportTool: SaveReportToolDefinition;
+	getReportTool: GetReportToolDefinition;
 }
 
 /**
@@ -130,7 +153,7 @@ export function extractEnumValues(
 /**
  * Convenience function that creates a server, imports and registers tools,
  * and returns useful objects for testing.
- * @returns An object containing the server, registered tools, and save-report tool.
+ * @returns An object containing the server, registered tools, save-report tool, and get-report tool.
  */
 export async function setupTestServerWithTools(): Promise<TestServerSetup> {
 	const server = createTestServer();
@@ -139,6 +162,7 @@ export async function setupTestServerWithTools(): Promise<TestServerSetup> {
 
 	const registeredTools = getRegisteredTools(server);
 	const saveReportTool = getSaveReportTool(server);
+	const getReportTool = getGetReportTool(server);
 
-	return { server, registeredTools, saveReportTool };
+	return { server, registeredTools, saveReportTool, getReportTool };
 }

@@ -3,17 +3,16 @@ import { REPORT_TYPES } from "../../types/report-types";
 import { taskIdSchema } from "./shared.schema";
 
 /**
- * Zod schema for save-report input validation.
+ * Zod schema for get-report input validation.
  */
-export const saveReportSchema = z.object({
+export const getReportSchema = z.object({
 	taskId: taskIdSchema,
 	reportType: z.enum(REPORT_TYPES, {
 		message: "reportType must be a valid workflow stage",
 	}),
-	content: z.string({ message: "content is required" }),
 });
 
 /**
- * Type derived from the save-report Zod schema.
+ * Type derived from the get-report Zod schema.
  */
-export type SaveReportInput = z.infer<typeof saveReportSchema>;
+export type GetReportInput = z.infer<typeof getReportSchema>;
