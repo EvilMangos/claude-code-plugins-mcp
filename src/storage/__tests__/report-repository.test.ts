@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ReportType } from "../../types/report-types";
-import type { StoredReport } from "../../types/stored-report";
+import type { ReportType } from "../../types/report.type";
+import type { IStoredReport } from "../../types/stored-report.interface";
 
 // Mock the report-storage module before importing report-repository
 vi.mock("../report-storage", () => {
@@ -19,8 +19,8 @@ vi.mock("../report-storage", () => {
 });
 
 // Import after mocking
-import { reportRepository } from "../report-repository";
-import { reportStorage } from "../report-storage";
+import { reportRepository } from "../report.repository";
+import { reportStorage } from "../report.storage";
 
 describe("ReportRepository", () => {
 	beforeEach(() => {
@@ -179,7 +179,7 @@ describe("ReportRepository", () => {
 
 	describe("get() method", () => {
 		it("should delegate to internal storage and return StoredReport when found", () => {
-			const storedReport: StoredReport = {
+			const storedReport: IStoredReport = {
 				taskId: "develop-feature-auth-123",
 				reportType: "requirements",
 				content: "# Requirements Report\n\nThis is the content.",
@@ -266,8 +266,8 @@ describe("ReportRepository", () => {
 	describe("Singleton pattern", () => {
 		it("should export reportRepository as a singleton", async () => {
 			// Re-import to verify same instance
-			const { reportRepository: repo1 } = await import("../report-repository");
-			const { reportRepository: repo2 } = await import("../report-repository");
+			const { reportRepository: repo1 } = await import("../report.repository");
+			const { reportRepository: repo2 } = await import("../report.repository");
 
 			expect(repo1).toBe(repo2);
 		});

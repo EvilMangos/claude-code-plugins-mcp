@@ -1,12 +1,13 @@
-import type { ReportType } from "../types/report-types";
-import type { StoredReport } from "../types/stored-report";
-import { reportStorage } from "./report-storage";
+import type { ReportType } from "../types/report.type";
+import type { IReportRepository } from "../types/report-repository.interface";
+import type { IStoredReport } from "../types/stored-report.interface";
+import { reportStorage } from "./report.storage";
 
 /**
  * Repository for managing workflow reports.
  * Wraps the underlying storage implementation and handles timestamp generation.
  */
-class ReportRepository {
+class ReportRepositoryImpl implements IReportRepository {
 	/**
 	 * Save a report to storage with auto-generated timestamp.
 	 * @param taskId - The task identifier
@@ -14,7 +15,7 @@ class ReportRepository {
 	 * @param content - The report content
 	 */
 	save(taskId: string, reportType: ReportType, content: string): void {
-		const storedReport: StoredReport = {
+		const storedReport: IStoredReport = {
 			taskId,
 			reportType,
 			content,
@@ -29,7 +30,7 @@ class ReportRepository {
 	 * @param reportType - The type of report (workflow stage)
 	 * @returns The stored report if found, undefined otherwise
 	 */
-	get(taskId: string, reportType: ReportType): StoredReport | undefined {
+	get(taskId: string, reportType: ReportType): IStoredReport | undefined {
 		return reportStorage.get(taskId, reportType);
 	}
 
@@ -42,4 +43,4 @@ class ReportRepository {
 	}
 }
 
-export const reportRepository = new ReportRepository();
+export const reportRepository: IReportRepository = new ReportRepositoryImpl();

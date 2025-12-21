@@ -1,9 +1,9 @@
-import type { ReportType } from "./report-types";
+import type { ReportType } from "./report.type";
 
 /**
  * Stored report structure.
  */
-export interface StoredReport {
+export interface IStoredReport {
 	taskId: string;
 	reportType: ReportType;
 	content: string;

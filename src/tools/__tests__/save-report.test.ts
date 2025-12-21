@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { saveReport } from "../save-report";
-import { reportRepository } from "../../storage/report-repository";
-import { REPORT_TYPES, ReportType } from "../../types/report-types";
+import { reportService } from "../report.service";
+import { reportRepository } from "../../storage/report.repository";
+import { REPORT_TYPES, ReportType } from "../../types/report.type";
 import { SaveReportInput } from "../schemas/save-report.schema";
 
 /**
@@ -20,7 +20,7 @@ vi.mock("../../storage/report-repository", () => ({
 	},
 }));
 
-describe("save-report tool", () => {
+describe("ReportService.saveReport", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		// Note: Timestamp generation is now handled by the repository
@@ -41,7 +41,7 @@ describe("save-report tool", () => {
 					content: "# Requirements Report\n\nThis is the content.",
 				};
 
-				const result = await saveReport(input);
+				const result = await reportService.saveReport(input);
 
 				expect(result).toEqual({ success: true });
 			}
@@ -56,7 +56,7 @@ describe("save-report tool", () => {
 					content: "# Implementation Report",
 				};
 
-				await saveReport(input);
+				await reportService.saveReport(input);
 
 				// Handler now calls save(taskId, reportType, content) without timestamp
 				expect(reportRepository.save).toHaveBeenCalledWith(
@@ -76,7 +76,7 @@ describe("save-report tool", () => {
 					content: "# Plan Content",
 				};
 
-				await saveReport(input);
+				await reportService.saveReport(input);
 
 				// Verify save is called with only 3 arguments (no timestamp)
 				expect(reportRepository.save).toHaveBeenCalledWith(
@@ -109,7 +109,7 @@ describe("save-report tool", () => {
 					content: "content",
 				} as SaveReportInput;
 
-				const result = await saveReport(input);
+				const result = await reportService.saveReport(input);
 
 				expect(result).toEqual({
 					success: false,
@@ -126,7 +126,7 @@ describe("save-report tool", () => {
 						content: "content",
 					};
 
-					const result = await saveReport(input);
+					const result = await reportService.saveReport(input);
 
 					expect(result).toEqual({
 						success: false,
@@ -144,7 +144,7 @@ describe("save-report tool", () => {
 						content: "content",
 					};
 
-					const result = await saveReport(input);
+					const result = await reportService.saveReport(input);
 
 					expect(result).toEqual({
 						success: false,
@@ -163,7 +163,7 @@ describe("save-report tool", () => {
 						content: "content",
 					} as SaveReportInput;
 
-					const result = await saveReport(input);
+					const result = await reportService.saveReport(input);
 
 					expect(result).toEqual({
 						success: false,
@@ -181,7 +181,9 @@ describe("save-report tool", () => {
 						content: "content",
 					};
 
-					const result = await saveReport(input as SaveReportInput);
+					const result = await reportService.saveReport(
+						input as SaveReportInput
+					);
 
 					expect(result).toEqual({
 						success: false,
@@ -199,7 +201,9 @@ describe("save-report tool", () => {
 						content: "content",
 					};
 
-					const result = await saveReport(input as SaveReportInput);
+					const result = await reportService.saveReport(
+						input as SaveReportInput
+					);
 
 					expect(result).toEqual({
 						success: false,
@@ -217,7 +221,7 @@ describe("save-report tool", () => {
 					content: "",
 				};
 
-				const result = await saveReport(input);
+				const result = await reportService.saveReport(input);
 
 				expect(result).toEqual({ success: true });
 			});
@@ -230,7 +234,7 @@ describe("save-report tool", () => {
 						reportType: "requirements",
 					} as SaveReportInput;
 
-					const result = await saveReport(input);
+					const result = await reportService.saveReport(input);
 
 					expect(result).toEqual({
 						success: false,
@@ -248,7 +252,7 @@ describe("save-report tool", () => {
 						content: "content",
 					} as SaveReportInput;
 
-					const result = await saveReport(input);
+					const result = await reportService.saveReport(input);
 
 					expect(result.success).toBe(false);
 					expect(result.error).toBeDefined();
@@ -267,7 +271,7 @@ describe("save-report tool", () => {
 					content: "Updated content",
 				};
 
-				const result = await saveReport(input);
+				const result = await reportService.saveReport(input);
 
 				expect(result).toEqual({ success: true });
 				// Repository.save should be called and handle overwrite internally
@@ -291,8 +295,8 @@ describe("save-report tool", () => {
 				content: "Implementation content",
 			};
 
-			await saveReport(input1);
-			await saveReport(input2);
+			await reportService.saveReport(input1);
+			await reportService.saveReport(input2);
 
 			// Both saves should be called independently with their respective data
 			expect(reportRepository.save).toHaveBeenCalledWith(
@@ -331,7 +335,9 @@ describe("save-report tool", () => {
 				content: `Content for ${reportType}`,
 			}));
 
-			const results = await Promise.all(inputs.map(saveReport));
+			const results = await Promise.all(
+				inputs.map((input) => reportService.saveReport(input))
+			);
 
 			results.forEach((result) => {
 				expect(result).toEqual({ success: true });
@@ -352,7 +358,7 @@ describe("save-report tool", () => {
 
 				const results = await Promise.all(
 					invalidTypes.map((reportType) =>
-						saveReport({
+						reportService.saveReport({
 							taskId: "task-123",
 							reportType,
 							content: `Content for ${reportType}`,
@@ -382,7 +388,7 @@ describe("save-report tool", () => {
 
 				const results = await Promise.all(
 					uppercaseVariants.map((reportType) =>
-						saveReport({
+						reportService.saveReport({
 							taskId: "task-123",
 							reportType,
 							content: "Content",
@@ -411,7 +417,7 @@ describe("save-report tool", () => {
 
 			const results = await Promise.all(
 				partialMatches.map((reportType) =>
-					saveReport({
+					reportService.saveReport({
 						taskId: "task-123",
 						reportType,
 						content: "Content",
@@ -434,7 +440,7 @@ describe("save-report tool", () => {
 					content: "Content",
 				};
 
-				const result = await saveReport(input as SaveReportInput);
+				const result = await reportService.saveReport(input as SaveReportInput);
 
 				expect(result.success).toBe(false);
 				expect(result.error).toBeDefined();
@@ -448,7 +454,7 @@ describe("save-report tool", () => {
 				content: "Content",
 			};
 
-			const result = await saveReport(input as SaveReportInput);
+			const result = await reportService.saveReport(input as SaveReportInput);
 
 			expect(result.success).toBe(false);
 			expect(result.error).toBeDefined();
@@ -461,7 +467,7 @@ describe("save-report tool", () => {
 				content: "Content",
 			};
 
-			const result = await saveReport(input as SaveReportInput);
+			const result = await reportService.saveReport(input as SaveReportInput);
 
 			expect(result.success).toBe(false);
 			expect(result.error).toBeDefined();
@@ -537,7 +543,7 @@ describe("save-report tool", () => {
 					content: "content",
 				};
 
-				const result = await saveReport(input);
+				const result = await reportService.saveReport(input);
 
 				expect(result).toHaveProperty("success", false);
 				expect(result).toHaveProperty("error");
@@ -554,7 +560,7 @@ describe("save-report tool", () => {
 					content: "content",
 				};
 
-				const result = await saveReport(input);
+				const result = await reportService.saveReport(input);
 
 				expect(result.error).toMatch(/taskId/i);
 				expect(result.error!.length).toBeGreaterThan(5);
@@ -572,7 +578,7 @@ describe("save-report tool", () => {
 				content: "content",
 			};
 
-			const result = await saveReport(input);
+			const result = await reportService.saveReport(input);
 
 			expect(result).toEqual({
 				success: false,
@@ -593,7 +599,7 @@ describe("save-report tool", () => {
 					content: "content",
 				};
 
-				const result = await saveReport(input);
+				const result = await reportService.saveReport(input);
 
 				expect(result.success).toBe(false);
 				expect(result.error).toBeDefined();
@@ -613,7 +619,7 @@ describe("save-report tool", () => {
 				content: largeContent,
 			};
 
-			const result = await saveReport(input);
+			const result = await reportService.saveReport(input);
 
 			expect(result).toEqual({ success: true });
 		});
@@ -626,7 +632,7 @@ describe("save-report tool", () => {
 					"Content with unicode: \u0000\u0001\u0002 and emojis: \uD83D\uDE00\uD83D\uDE01",
 			};
 
-			const result = await saveReport(input);
+			const result = await reportService.saveReport(input);
 
 			expect(result).toEqual({ success: true });
 		});
@@ -655,7 +661,7 @@ const code = "example";
 					content: markdownContent,
 				};
 
-				const result = await saveReport(input);
+				const result = await reportService.saveReport(input);
 
 				expect(result).toEqual({ success: true });
 			}
@@ -676,7 +682,9 @@ const code = "example";
 				content: "content",
 			}));
 
-			const results = await Promise.all(inputs.map(saveReport));
+			const results = await Promise.all(
+				inputs.map((input) => reportService.saveReport(input))
+			);
 
 			results.forEach((result) => {
 				expect(result).toEqual({ success: true });
@@ -698,7 +706,9 @@ const code = "example";
 				},
 			];
 
-			const results = await Promise.all(inputs.map(saveReport));
+			const results = await Promise.all(
+				inputs.map((input) => reportService.saveReport(input))
+			);
 
 			expect(results).toEqual([
 				{ success: true },

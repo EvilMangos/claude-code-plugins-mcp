@@ -1,7 +1,7 @@
 /**
  * Result type for the getReport function.
  */
-export interface GetReportResult {
+export interface IGetReportResult {
 	success: boolean;
 	content?: string | null;
 	error?: string;

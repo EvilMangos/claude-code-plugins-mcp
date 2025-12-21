@@ -1,6 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getReport } from "./get-report";
-import { saveReport } from "./save-report";
+import { reportService } from "./report.service";
 import { getReportSchema } from "./schemas/get-report.schema";
 import { saveReportSchema } from "./schemas/save-report.schema";
 
@@ -16,7 +15,7 @@ export function registerTools(server: McpServer): void {
 			inputSchema: saveReportSchema.shape,
 		},
 		async (input) => {
-			const result = await saveReport(input);
+			const result = await reportService.saveReport(input);
 			return { content: [{ type: "text", text: JSON.stringify(result) }] };
 		}
 	);
@@ -28,7 +27,7 @@ export function registerTools(server: McpServer): void {
 			inputSchema: getReportSchema.shape,
 		},
 		async (input) => {
-			const result = await getReport(input);
+			const result = await reportService.getReport(input);
 			return { content: [{ type: "text", text: JSON.stringify(result) }] };
 		}
 	);

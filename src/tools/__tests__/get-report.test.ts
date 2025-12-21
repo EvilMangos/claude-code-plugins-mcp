@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getReport } from "../get-report";
-import { reportRepository } from "../../storage/report-repository";
-import { ReportType } from "../../types/report-types";
+import { reportService } from "../report.service";
+import { reportRepository } from "../../storage/report.repository";
+import { ReportType } from "../../types/report.type";
 import { GetReportInput } from "../schemas/get-report.schema";
-import type { StoredReport } from "../../types/stored-report";
+import type { IStoredReport } from "../../types/stored-report.interface";
 
 /**
  * Test-only type that allows any string for reportType to test validation.
@@ -21,7 +21,7 @@ vi.mock("../../storage/report-repository", () => ({
 	},
 }));
 
-describe("get-report tool", () => {
+describe("ReportService.getReport", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 	});
@@ -36,7 +36,7 @@ describe("get-report tool", () => {
 				reportType: "requirements",
 			} as GetReportInput;
 
-			const result = await getReport(input);
+			const result = await reportService.getReport(input);
 
 			expect(result).toEqual({
 				success: false,
@@ -52,7 +52,7 @@ describe("get-report tool", () => {
 					reportType: "requirements",
 				};
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				expect(result).toEqual({
 					success: false,
@@ -69,7 +69,7 @@ describe("get-report tool", () => {
 					reportType: "requirements",
 				};
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				expect(result).toEqual({
 					success: false,
@@ -88,7 +88,7 @@ describe("get-report tool", () => {
 					reportType: "requirements",
 				};
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				// If taskId is valid, it should at least query repository (not return validation error)
 				expect(result.success).toBe(true);
@@ -105,7 +105,7 @@ describe("get-report tool", () => {
 					taskId: "task-123",
 				} as GetReportInput;
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				expect(result).toEqual({
 					success: false,
@@ -122,7 +122,7 @@ describe("get-report tool", () => {
 					reportType: "",
 				};
 
-				const result = await getReport(input as GetReportInput);
+				const result = await reportService.getReport(input as GetReportInput);
 
 				expect(result).toEqual({
 					success: false,
@@ -143,7 +143,7 @@ describe("get-report tool", () => {
 
 				const results = await Promise.all(
 					invalidTypes.map((reportType) =>
-						getReport({
+						reportService.getReport({
 							taskId: "task-123",
 							reportType,
 						} as GetReportInput)
@@ -181,7 +181,9 @@ describe("get-report tool", () => {
 				reportType,
 			}));
 
-			const results = await Promise.all(inputs.map(getReport));
+			const results = await Promise.all(
+				inputs.map((input) => reportService.getReport(input))
+			);
 
 			results.forEach((result) => {
 				// Success because validation passed (even if report not found)
@@ -203,7 +205,7 @@ describe("get-report tool", () => {
 
 				const results = await Promise.all(
 					uppercaseVariants.map((reportType) =>
-						getReport({
+						reportService.getReport({
 							taskId: "task-123",
 							reportType,
 						} as GetReportInput)
@@ -222,7 +224,7 @@ describe("get-report tool", () => {
 		it.concurrent(
 			"should return success with content when report exists",
 			async () => {
-				const storedReport: StoredReport = {
+				const storedReport: IStoredReport = {
 					taskId: "develop-feature-auth-123",
 					reportType: "requirements",
 					content: "# Requirements Report\n\nThis is the content.",
@@ -236,7 +238,7 @@ describe("get-report tool", () => {
 					reportType: "requirements",
 				};
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				expect(result).toEqual({
 					success: true,
@@ -248,7 +250,7 @@ describe("get-report tool", () => {
 		it.concurrent(
 			"should return only content string from repository",
 			async () => {
-				const storedReport: StoredReport = {
+				const storedReport: IStoredReport = {
 					taskId: "task-id-1",
 					reportType: "plan",
 					content: "# Plan Content",
@@ -262,7 +264,7 @@ describe("get-report tool", () => {
 					reportType: "plan",
 				};
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				expect(result.success).toBe(true);
 				expect(result.content).toBe("# Plan Content");
@@ -279,7 +281,7 @@ describe("get-report tool", () => {
 					reportType: "implementation",
 				};
 
-				await getReport(input);
+				await reportService.getReport(input);
 
 				expect(reportRepository.get).toHaveBeenCalledWith(
 					"my-task-id",
@@ -300,7 +302,7 @@ describe("get-report tool", () => {
 					reportType: "requirements",
 				};
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				expect(result).toEqual({
 					success: true,
@@ -319,7 +321,7 @@ describe("get-report tool", () => {
 					reportType: "plan",
 				};
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				expect(result.success).toBe(true);
 				expect(result.error).toBeUndefined();
@@ -340,7 +342,7 @@ describe("get-report tool", () => {
 					reportType: "requirements",
 				};
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				expect(result).toEqual({
 					success: false,
@@ -361,7 +363,7 @@ describe("get-report tool", () => {
 					reportType: "requirements",
 				};
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				expect(result.success).toBe(false);
 				expect(result.error).toBeDefined();
@@ -380,7 +382,7 @@ describe("get-report tool", () => {
 					reportType: "requirements",
 				};
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				expect(result).toHaveProperty("success", false);
 				expect(result).toHaveProperty("error");
@@ -394,7 +396,7 @@ describe("get-report tool", () => {
 	// ============================================================
 	describe("Edge Cases", () => {
 		it.concurrent("should handle concurrent get calls", async () => {
-			const storedReports: StoredReport[] = [
+			const storedReports: IStoredReport[] = [
 				{
 					taskId: "task-concurrent-1",
 					reportType: "requirements",
@@ -426,7 +428,9 @@ describe("get-report tool", () => {
 				{ taskId: "task-concurrent-3", reportType: "implementation" },
 			];
 
-			const results = await Promise.all(inputs.map(getReport));
+			const results = await Promise.all(
+				inputs.map((input) => reportService.getReport(input))
+			);
 
 			expect(results[0]).toEqual({ success: true, content: "c1" });
 			expect(results[1]).toEqual({ success: true, content: "c2" });
@@ -449,7 +453,9 @@ describe("get-report tool", () => {
 				reportType: "requirements",
 			}));
 
-			const results = await Promise.all(inputs.map(getReport));
+			const results = await Promise.all(
+				inputs.map((input) => reportService.getReport(input))
+			);
 
 			results.forEach((result) => {
 				expect(result.success).toBe(true);
@@ -460,7 +466,7 @@ describe("get-report tool", () => {
 			"should return report with large content unchanged",
 			async () => {
 				const largeContent = "x".repeat(1000000); // 1MB of content
-				const storedReport: StoredReport = {
+				const storedReport: IStoredReport = {
 					taskId: "task-large",
 					reportType: "requirements",
 					content: largeContent,
@@ -474,7 +480,7 @@ describe("get-report tool", () => {
 					reportType: "requirements",
 				};
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				expect(result.success).toBe(true);
 				expect(result.content).toBe(largeContent);
@@ -487,7 +493,7 @@ describe("get-report tool", () => {
 			async () => {
 				const specialContent =
 					"Content with unicode: \u0000\u0001\u0002 and emojis: \uD83D\uDE00\uD83D\uDE01";
-				const storedReport: StoredReport = {
+				const storedReport: IStoredReport = {
 					taskId: "task-special",
 					reportType: "requirements",
 					content: specialContent,
@@ -501,7 +507,7 @@ describe("get-report tool", () => {
 					reportType: "requirements",
 				};
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				expect(result.success).toBe(true);
 				expect(result.content).toBe(specialContent);
@@ -526,7 +532,7 @@ const code = "example";
 |-------|--------|
 | Cell  | Cell   |
 `;
-				const storedReport: StoredReport = {
+				const storedReport: IStoredReport = {
 					taskId: "task-markdown",
 					reportType: "documentation",
 					content: markdownContent,
@@ -540,7 +546,7 @@ const code = "example";
 					reportType: "documentation",
 				};
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				expect(result.success).toBe(true);
 				expect(result.content).toBe(markdownContent);
@@ -557,7 +563,7 @@ const code = "example";
 			async () => {
 				const input = {} as GetReportInput;
 
-				const result = await getReport(input);
+				const result = await reportService.getReport(input);
 
 				expect(result.success).toBe(false);
 				expect(result.error).toBeDefined();
@@ -572,7 +578,7 @@ const code = "example";
 					reportType: "invalid-type",
 				};
 
-				const result = await getReport(input as GetReportInput);
+				const result = await reportService.getReport(input as GetReportInput);
 
 				expect(result.success).toBe(false);
 				expect(result.error).toBeDefined();

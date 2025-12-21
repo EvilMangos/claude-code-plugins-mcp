@@ -39,11 +39,11 @@ The server uses stdio transport for MCP communication:
 - **Entry point**: `src/index.ts` - Creates McpServer and connects via StdioServerTransport
 - **Tool registration**: `src/tools/register.ts` - Registers MCP tools with Zod schemas
 - **Tool schemas**: `src/tools/schemas/` - Extracted Zod validation schemas (e.g., `save-report.schema.ts`, `get-report.schema.ts`, `shared.schema.ts`). Shared schemas like `taskIdSchema` are reused across tool schemas.
-- **Types**: `src/types/` - Shared types and constants (e.g., `report-types.ts` exports `REPORT_TYPES` constant and `ReportType` type)
+- **Types**: `src/types/` - Shared types and constants (e.g., `report.type.ts` exports `REPORT_TYPES` constant and `ReportType` type)
 - **Storage**: Two-layer architecture for report persistence:
-  - `src/storage/report-repository.ts` - **Public interface** for tool handlers. Singleton `reportRepository` provides `save(taskId, reportType, content)`, `get(taskId, reportType)`, and `clear()` methods. Handles timestamp generation internally.
-  - `src/storage/report-storage.ts` - **Internal implementation**. In-memory storage using Map with composite keys (`{taskId}:{reportType}`). Should not be imported directly by tool handlers.
-- **Utilities**: `src/utils/` - Shared helper functions (e.g., `format-zod-error.ts`, `format-storage-error.ts`)
+  - `src/storage/report-repository.interface.ts` - **Public interface** for tool handlers. Singleton `reportRepository` provides `save(taskId, reportType, content)`, `get(taskId, reportType)`, and `clear()` methods. Handles timestamp generation internally.
+  - `src/storage/report.storage.ts` - **Internal implementation**. In-memory storage using Map with composite keys (`{taskId}:{reportType}`). Should not be imported directly by tool handlers.
+- **Utilities**: `src/utils/` - Shared helper functions (e.g., `format-zod.error.ts`, `format-storage.error.ts`)
 
 The `reportType` must be one of the 12 valid workflow stages defined in `REPORT_TYPES`.
 

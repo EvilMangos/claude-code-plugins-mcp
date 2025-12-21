@@ -1,7 +1,7 @@
 /**
  * Result type for the saveReport function.
  */
-export interface SaveReportResult {
+export interface ISaveReportResult {
 	success: boolean;
 	error?: string;
 }

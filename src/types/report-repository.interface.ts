@@ -1,0 +1,28 @@
+import type { ReportType } from "./report.type";
+import type { IStoredReport } from "./stored-report.interface";
+
+/**
+ * Interface for report repository operations.
+ */
+export interface IReportRepository {
+	/**
+	 * Save a report to storage with auto-generated timestamp.
+	 * @param taskId - The task identifier
+	 * @param reportType - The type of report (workflow stage)
+	 * @param content - The report content
+	 */
+	save(taskId: string, reportType: ReportType, content: string): void;
+
+	/**
+	 * Get a report from storage.
+	 * @param taskId - The task identifier
+	 * @param reportType - The type of report (workflow stage)
+	 * @returns The stored report if found, undefined otherwise
+	 */
+	get(taskId: string, reportType: ReportType): IStoredReport | undefined;
+
+	/**
+	 * Clear all reports from storage.
+	 */
+	clear(): void;
+}

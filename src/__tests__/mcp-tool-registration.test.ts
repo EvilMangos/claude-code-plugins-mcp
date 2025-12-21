@@ -4,7 +4,7 @@ import {
 	extractSchemaShape,
 	setupTestServerWithTools,
 } from "./helpers/mcp-test-utils";
-import { REPORT_TYPES } from "../types/report-types";
+import { REPORT_TYPES } from "../types/report.type";
 
 /**
  * Integration tests for MCP tool registration.
@@ -176,7 +176,7 @@ describe("MCP Server Tool Registration", () => {
 				expect(parsedResult.success).toBe(true);
 
 				// Verify the report was stored by checking storage
-				const { reportStorage } = await import("../storage/report-storage");
+				const { reportStorage } = await import("../storage/report.storage");
 				const storedReport = reportStorage.get(
 					"integration-test-123",
 					"implementation"
@@ -391,7 +391,7 @@ describe("MCP Server Tool Registration", () => {
 				expect(parsedResult.content).toBe("Security integration test content");
 
 				// Verify consistency with direct storage access
-				const { reportStorage } = await import("../storage/report-storage");
+				const { reportStorage } = await import("../storage/report.storage");
 				const storedReport = reportStorage.get(
 					"integration-module-test-789",
 					"security"

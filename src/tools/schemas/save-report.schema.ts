@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { REPORT_TYPES } from "../../types/report-types";
+import { REPORT_TYPES } from "../../types/report.type";
 import { taskIdSchema } from "./shared.schema";
 
 /**
