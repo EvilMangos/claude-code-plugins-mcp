@@ -403,10 +403,7 @@ describe("MCP Server Tool Registration", () => {
 		);
 	});
 
-	// ============================================================
-	// REQ-6: Schema Exposes Valid Values to MCP (save-report)
-	// ============================================================
-	describe("REQ-6: Schema Exposes Valid Values to MCP (save-report)", () => {
+	describe("Schema Exposes Valid Values to MCP (save-report)", () => {
 		it.concurrent(
 			"should expose reportType as enum in the JSON schema",
 			async () => {
@@ -491,10 +488,7 @@ describe("MCP Server Tool Registration", () => {
 		);
 	});
 
-	// ============================================================
-	// REQ-6: Schema Exposes Valid Values to MCP (get-report)
-	// ============================================================
-	describe("REQ-6: Schema Exposes Valid Values to MCP (get-report)", () => {
+	describe("Schema Exposes Valid Values to MCP (get-report)", () => {
 		it.concurrent(
 			"should expose reportType as enum in get-report JSON schema",
 			async () => {

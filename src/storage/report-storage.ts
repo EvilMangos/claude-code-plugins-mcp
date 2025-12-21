@@ -1,8 +1,6 @@
 import type { ReportType } from "../types/report-types";
 import type { StoredReport } from "../types/stored-report";
 
-export type { StoredReport };
-
 /**
  * In-memory storage for workflow reports.
  * Uses a Map with composite key: {taskId}:{reportType}

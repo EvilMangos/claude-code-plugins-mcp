@@ -1,4 +1,4 @@
-import { reportStorage } from "../storage/report-storage";
+import { reportRepository } from "../storage/report-repository";
 import type { GetReportResult } from "../types/get-report-result";
 import { formatStorageError } from "../utils/format-storage-error";
 import { formatZodError } from "../utils/format-zod-error";
@@ -25,8 +25,8 @@ export async function getReport(
 	const validatedInput = parseResult.data;
 
 	try {
-		// Get report from storage
-		const report = reportStorage.get(
+		// Get report from repository
+		const report = reportRepository.get(
 			validatedInput.taskId,
 			validatedInput.reportType
 		);

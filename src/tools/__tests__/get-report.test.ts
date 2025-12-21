@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getReport } from "../get-report";
-import { reportStorage } from "../../storage/report-storage";
+import { reportRepository } from "../../storage/report-repository";
 import { ReportType } from "../../types/report-types";
 import { GetReportInput } from "../schemas/get-report.schema";
 import type { StoredReport } from "../../types/stored-report";
@@ -12,9 +12,9 @@ type TestGetReportInput = Omit<GetReportInput, "reportType"> & {
 	reportType: string;
 };
 
-// Mock the storage module
-vi.mock("../../storage/report-storage", () => ({
-	reportStorage: {
+// Mock the repository module
+vi.mock("../../storage/report-repository", () => ({
+	reportRepository: {
 		save: vi.fn(),
 		get: vi.fn(),
 		clear: vi.fn(),
@@ -30,10 +30,7 @@ describe("get-report tool", () => {
 		vi.clearAllMocks();
 	});
 
-	// ============================================================
-	// REQ-1: Validate taskId Input
-	// ============================================================
-	describe("REQ-1: Validate taskId Input", () => {
+	describe("Validate taskId Input", () => {
 		it.concurrent("should return error when taskId is missing", async () => {
 			const input = {
 				reportType: "requirements",
@@ -82,9 +79,9 @@ describe("get-report tool", () => {
 		);
 
 		it.concurrent(
-			"should accept valid taskId and proceed to storage lookup",
+			"should accept valid taskId and proceed to repository lookup",
 			async () => {
-				vi.mocked(reportStorage.get).mockReturnValueOnce(undefined);
+				vi.mocked(reportRepository.get).mockReturnValueOnce(undefined);
 
 				const input: GetReportInput = {
 					taskId: "valid-task-id",
@@ -93,17 +90,14 @@ describe("get-report tool", () => {
 
 				const result = await getReport(input);
 
-				// If taskId is valid, it should at least query storage (not return validation error)
+				// If taskId is valid, it should at least query repository (not return validation error)
 				expect(result.success).toBe(true);
-				expect(reportStorage.get).toHaveBeenCalled();
+				expect(reportRepository.get).toHaveBeenCalled();
 			}
 		);
 	});
 
-	// ============================================================
-	// REQ-2: Validate reportType Input
-	// ============================================================
-	describe("REQ-2: Validate reportType Input", () => {
+	describe("Validate reportType Input", () => {
 		it.concurrent(
 			"should return error when reportType is missing",
 			async () => {
@@ -165,7 +159,7 @@ describe("get-report tool", () => {
 		);
 
 		it.concurrent("should accept all 12 valid report types", async () => {
-			vi.mocked(reportStorage.get).mockReturnValue(undefined);
+			vi.mocked(reportRepository.get).mockReturnValue(undefined);
 
 			const validTypes: ReportType[] = [
 				"requirements",
@@ -224,10 +218,7 @@ describe("get-report tool", () => {
 		);
 	});
 
-	// ============================================================
-	// REQ-3: Retrieve Existing Report from Storage
-	// ============================================================
-	describe("REQ-3: Retrieve Existing Report from Storage", () => {
+	describe("Retrieve Existing Report from Repository", () => {
 		it.concurrent(
 			"should return success with content when report exists",
 			async () => {
@@ -238,7 +229,7 @@ describe("get-report tool", () => {
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
 
-				vi.mocked(reportStorage.get).mockReturnValueOnce(storedReport);
+				vi.mocked(reportRepository.get).mockReturnValueOnce(storedReport);
 
 				const input: GetReportInput = {
 					taskId: "develop-feature-auth-123",
@@ -255,7 +246,7 @@ describe("get-report tool", () => {
 		);
 
 		it.concurrent(
-			"should return only content string from storage",
+			"should return only content string from repository",
 			async () => {
 				const storedReport: StoredReport = {
 					taskId: "task-id-1",
@@ -264,7 +255,7 @@ describe("get-report tool", () => {
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
 
-				vi.mocked(reportStorage.get).mockReturnValueOnce(storedReport);
+				vi.mocked(reportRepository.get).mockReturnValueOnce(storedReport);
 
 				const input: GetReportInput = {
 					taskId: "task-id-1",
@@ -279,9 +270,9 @@ describe("get-report tool", () => {
 		);
 
 		it.concurrent(
-			"should call storage.get with correct taskId and reportType",
+			"should call repository.get with correct taskId and reportType",
 			async () => {
-				vi.mocked(reportStorage.get).mockReturnValueOnce(undefined);
+				vi.mocked(reportRepository.get).mockReturnValueOnce(undefined);
 
 				const input: GetReportInput = {
 					taskId: "my-task-id",
@@ -290,7 +281,7 @@ describe("get-report tool", () => {
 
 				await getReport(input);
 
-				expect(reportStorage.get).toHaveBeenCalledWith(
+				expect(reportRepository.get).toHaveBeenCalledWith(
 					"my-task-id",
 					"implementation"
 				);
@@ -298,14 +289,11 @@ describe("get-report tool", () => {
 		);
 	});
 
-	// ============================================================
-	// REQ-4: Handle Non-Existent Report
-	// ============================================================
-	describe("REQ-4: Handle Non-Existent Report", () => {
+	describe("Handle Non-Existent Report", () => {
 		it.concurrent(
 			"should return success true with content null when report not found",
 			async () => {
-				vi.mocked(reportStorage.get).mockReturnValueOnce(undefined);
+				vi.mocked(reportRepository.get).mockReturnValueOnce(undefined);
 
 				const input: GetReportInput = {
 					taskId: "non-existent-task",
@@ -324,7 +312,7 @@ describe("get-report tool", () => {
 		it.concurrent(
 			"should not return error when report is not found",
 			async () => {
-				vi.mocked(reportStorage.get).mockReturnValueOnce(undefined);
+				vi.mocked(reportRepository.get).mockReturnValueOnce(undefined);
 
 				const input: GetReportInput = {
 					taskId: "non-existent-task",
@@ -339,32 +327,32 @@ describe("get-report tool", () => {
 		);
 	});
 
-	// ============================================================
-	// REQ-5: Handle Storage Errors Gracefully
-	// ============================================================
-	describe("REQ-5: Handle Storage Errors Gracefully", () => {
-		it.concurrent("should handle storage exceptions gracefully", async () => {
-			vi.mocked(reportStorage.get).mockImplementationOnce(() => {
-				throw new Error("Storage failure");
-			});
+	describe("Handle Repository Errors Gracefully", () => {
+		it.concurrent(
+			"should handle repository exceptions gracefully",
+			async () => {
+				vi.mocked(reportRepository.get).mockImplementationOnce(() => {
+					throw new Error("Storage failure");
+				});
 
-			const input: GetReportInput = {
-				taskId: "task-123",
-				reportType: "requirements",
-			};
+				const input: GetReportInput = {
+					taskId: "task-123",
+					reportType: "requirements",
+				};
 
-			const result = await getReport(input);
+				const result = await getReport(input);
 
-			expect(result).toEqual({
-				success: false,
-				error: expect.stringContaining("Storage failure"),
-			});
-		});
+				expect(result).toEqual({
+					success: false,
+					error: expect.stringContaining("Storage failure"),
+				});
+			}
+		);
 
 		it.concurrent(
 			"should handle non-Error thrown objects gracefully",
 			async () => {
-				vi.mocked(reportStorage.get).mockImplementationOnce(() => {
+				vi.mocked(reportRepository.get).mockImplementationOnce(() => {
 					throw "String error"; // Non-Error thrown
 				});
 
@@ -383,7 +371,7 @@ describe("get-report tool", () => {
 		it.concurrent(
 			"should return error structure with success false and error message",
 			async () => {
-				vi.mocked(reportStorage.get).mockImplementationOnce(() => {
+				vi.mocked(reportRepository.get).mockImplementationOnce(() => {
 					throw new Error("Internal database error");
 				});
 
@@ -427,7 +415,7 @@ describe("get-report tool", () => {
 				},
 			];
 
-			vi.mocked(reportStorage.get)
+			vi.mocked(reportRepository.get)
 				.mockReturnValueOnce(storedReports[0])
 				.mockReturnValueOnce(storedReports[1])
 				.mockReturnValueOnce(storedReports[2]);
@@ -446,7 +434,7 @@ describe("get-report tool", () => {
 		});
 
 		it.concurrent("should handle taskId with various formats", async () => {
-			vi.mocked(reportStorage.get).mockReturnValue(undefined);
+			vi.mocked(reportRepository.get).mockReturnValue(undefined);
 
 			const taskIds = [
 				"develop-feature-auth-123",
@@ -479,7 +467,7 @@ describe("get-report tool", () => {
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
 
-				vi.mocked(reportStorage.get).mockReturnValueOnce(storedReport);
+				vi.mocked(reportRepository.get).mockReturnValueOnce(storedReport);
 
 				const input: GetReportInput = {
 					taskId: "task-large",
@@ -506,7 +494,7 @@ describe("get-report tool", () => {
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
 
-				vi.mocked(reportStorage.get).mockReturnValueOnce(storedReport);
+				vi.mocked(reportRepository.get).mockReturnValueOnce(storedReport);
 
 				const input: GetReportInput = {
 					taskId: "task-special",
@@ -545,7 +533,7 @@ const code = "example";
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
 
-				vi.mocked(reportStorage.get).mockReturnValueOnce(storedReport);
+				vi.mocked(reportRepository.get).mockReturnValueOnce(storedReport);
 
 				const input: GetReportInput = {
 					taskId: "task-markdown",

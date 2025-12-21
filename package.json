@@ -1,9 +1,18 @@
 {
   "name": "claude-code-plugins-mcp",
   "version": "0.1.0",
-  "description": "MCP server for claude-code-plugins data storage and retrieval",
+  "description": "MCP server for claude-code-plugins workflow data storage and retrieval",
   "author": "EvilMangos",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EvilMangos/claude-code-plugins-mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/EvilMangos/claude-code-plugins-mcp/issues"
+  },
+  "homepage": "https://github.com/EvilMangos/claude-code-plugins-mcp#readme",
+  "files": ["dist", "README.md", "LICENSE"],
   "main": "dist/index.js",
   "scripts": {
     "build": "tsup src/index.ts --format esm",

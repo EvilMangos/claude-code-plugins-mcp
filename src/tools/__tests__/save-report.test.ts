@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { saveReport } from "../save-report";
-import { reportStorage } from "../../storage/report-storage";
+import { reportRepository } from "../../storage/report-repository";
 import { REPORT_TYPES, ReportType } from "../../types/report-types";
 import { SaveReportInput } from "../schemas/save-report.schema";
 
@@ -11,9 +11,9 @@ type TestSaveReportInput = Omit<SaveReportInput, "reportType"> & {
 	reportType: string;
 };
 
-// Mock the storage module
-vi.mock("../../storage/report-storage", () => ({
-	reportStorage: {
+// Mock the repository module
+vi.mock("../../storage/report-repository", () => ({
+	reportRepository: {
 		save: vi.fn(),
 		get: vi.fn(),
 		clear: vi.fn(),
@@ -23,19 +23,15 @@ vi.mock("../../storage/report-storage", () => ({
 describe("save-report tool", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		// Mock Date.now for consistent timestamps
-		vi.useFakeTimers();
-		vi.setSystemTime(new Date("2025-01-15T10:30:00.000Z"));
+		// Note: Timestamp generation is now handled by the repository
+		// Tool handlers no longer need to mock Date for timestamp testing
 	});
 
 	afterEach(() => {
-		vi.useRealTimers();
+		vi.clearAllMocks();
 	});
 
-	// ============================================================
-	// REQ-1: Save Report
-	// ============================================================
-	describe("REQ-1: Save Report", () => {
+	describe("Save Report", () => {
 		it.concurrent(
 			"should save a report with valid inputs and return success",
 			async () => {
@@ -52,7 +48,7 @@ describe("save-report tool", () => {
 		);
 
 		it.concurrent(
-			"should store the report with correct composite key",
+			"should call repository.save with taskId, reportType, and content",
 			async () => {
 				const input: SaveReportInput = {
 					taskId: "develop-feature-auth-123",
@@ -62,17 +58,17 @@ describe("save-report tool", () => {
 
 				await saveReport(input);
 
-				expect(reportStorage.save).toHaveBeenCalledWith(
-					expect.objectContaining({
-						taskId: "develop-feature-auth-123",
-						reportType: "implementation",
-					})
+				// Handler now calls save(taskId, reportType, content) without timestamp
+				expect(reportRepository.save).toHaveBeenCalledWith(
+					"develop-feature-auth-123",
+					"implementation",
+					"# Implementation Report"
 				);
 			}
 		);
 
 		it.concurrent(
-			"should store the report with all expected fields including savedAt timestamp",
+			"should not pass timestamp to repository (timestamp is repository responsibility)",
 			async () => {
 				const input: SaveReportInput = {
 					taskId: "task-id-1",
@@ -82,20 +78,30 @@ describe("save-report tool", () => {
 
 				await saveReport(input);
 
-				expect(reportStorage.save).toHaveBeenCalledWith({
-					taskId: "task-id-1",
-					reportType: "plan",
-					content: "# Plan Content",
-					savedAt: "2025-01-15T10:30:00.000Z",
-				});
+				// Verify save is called with only 3 arguments (no timestamp)
+				expect(reportRepository.save).toHaveBeenCalledWith(
+					"task-id-1",
+					"plan",
+					"# Plan Content"
+				);
+				// Verify the call with matching arguments has exactly 3 arguments (no timestamp)
+				// Note: We find the specific call for this test instead of using toHaveBeenCalledTimes(1)
+				// because it.concurrent shares mocks across parallel tests
+				const matchingCall = vi
+					.mocked(reportRepository.save)
+					.mock.calls.find(
+						(call) =>
+							call[0] === "task-id-1" &&
+							call[1] === "plan" &&
+							call[2] === "# Plan Content"
+					);
+				expect(matchingCall).toBeDefined();
+				expect(matchingCall).toHaveLength(3);
 			}
 		);
 	});
 
-	// ============================================================
-	// REQ-2: Input Validation
-	// ============================================================
-	describe("REQ-2: Input Validation", () => {
+	describe("Input Validation", () => {
 		describe("taskId validation", () => {
 			it.concurrent("should return error when taskId is missing", async () => {
 				const input = {
@@ -251,10 +257,7 @@ describe("save-report tool", () => {
 		});
 	});
 
-	// ============================================================
-	// REQ-3: Overwrite Behavior
-	// ============================================================
-	describe("REQ-3: Overwrite Behavior", () => {
+	describe("Overwrite Behavior", () => {
 		it.concurrent(
 			"should overwrite existing report with same key",
 			async () => {
@@ -267,42 +270,14 @@ describe("save-report tool", () => {
 				const result = await saveReport(input);
 
 				expect(result).toEqual({ success: true });
-				// Storage.save should be called and handle overwrite internally
-				expect(reportStorage.save).toHaveBeenCalledWith(
-					expect.objectContaining({
-						content: "Updated content",
-					})
+				// Repository.save should be called and handle overwrite internally
+				expect(reportRepository.save).toHaveBeenCalledWith(
+					"task-123",
+					"requirements",
+					"Updated content"
 				);
 			}
 		);
-
-		it.concurrent("should update savedAt timestamp on overwrite", async () => {
-			// First save
-			const input1: SaveReportInput = {
-				taskId: "task-123",
-				reportType: "requirements",
-				content: "Original content",
-			};
-			await saveReport(input1);
-
-			// Advance time
-			vi.advanceTimersByTime(60000); // 1 minute
-
-			// Second save (overwrite)
-			const input2: SaveReportInput = {
-				taskId: "task-123",
-				reportType: "requirements",
-				content: "Updated content",
-			};
-			await saveReport(input2);
-
-			// Verify second call has updated timestamp
-			expect(reportStorage.save).toHaveBeenLastCalledWith(
-				expect.objectContaining({
-					savedAt: "2025-01-15T10:31:00.000Z",
-				})
-			);
-		});
 
 		it.concurrent("should not affect reports with different keys", async () => {
 			const input1: SaveReportInput = {
@@ -320,27 +295,20 @@ describe("save-report tool", () => {
 			await saveReport(input2);
 
 			// Both saves should be called independently with their respective data
-			expect(reportStorage.save).toHaveBeenCalledWith(
-				expect.objectContaining({
-					taskId: "task-different-keys-1",
-					reportType: "requirements",
-					content: "Requirements content",
-				})
+			expect(reportRepository.save).toHaveBeenCalledWith(
+				"task-different-keys-1",
+				"requirements",
+				"Requirements content"
 			);
-			expect(reportStorage.save).toHaveBeenCalledWith(
-				expect.objectContaining({
-					taskId: "task-different-keys-1",
-					reportType: "implementation",
-					content: "Implementation content",
-				})
+			expect(reportRepository.save).toHaveBeenCalledWith(
+				"task-different-keys-1",
+				"implementation",
+				"Implementation content"
 			);
 		});
 	});
 
-	// ============================================================
-	// REQ-4: Accept Only Valid Report Types (Enum Constraint)
-	// ============================================================
-	describe("REQ-4: Accept Only Valid Report Types", () => {
+	describe("Accept Only Valid Report Types", () => {
 		it.concurrent("should accept all 12 valid report types", async () => {
 			const validTypes: ReportType[] = [
 				"requirements",
@@ -500,10 +468,7 @@ describe("save-report tool", () => {
 		});
 	});
 
-	// ============================================================
-	// REQ-3: Export REPORT_TYPES and ReportType
-	// ============================================================
-	describe("REQ-3: Export REPORT_TYPES and ReportType", () => {
+	describe("Export REPORT_TYPES and ReportType", () => {
 		it.concurrent("should export REPORT_TYPES constant with 12 values", () => {
 			expect(REPORT_TYPES).toBeDefined();
 			expect(Array.isArray(REPORT_TYPES)).toBe(true);
@@ -562,10 +527,7 @@ describe("save-report tool", () => {
 		);
 	});
 
-	// ============================================================
-	// REQ-5: Error Handling
-	// ============================================================
-	describe("REQ-5: Error Handling", () => {
+	describe("Error Handling", () => {
 		it.concurrent(
 			"should return error structure with success false and error message",
 			async () => {
@@ -599,8 +561,8 @@ describe("save-report tool", () => {
 			}
 		);
 
-		it.concurrent("should handle storage errors gracefully", async () => {
-			vi.mocked(reportStorage.save).mockImplementationOnce(() => {
+		it.concurrent("should handle repository errors gracefully", async () => {
+			vi.mocked(reportRepository.save).mockImplementationOnce(() => {
 				throw new Error("Storage failure");
 			});
 
@@ -621,7 +583,7 @@ describe("save-report tool", () => {
 		it.concurrent(
 			"should not expose internal error details for unexpected errors",
 			async () => {
-				vi.mocked(reportStorage.save).mockImplementationOnce(() => {
+				vi.mocked(reportRepository.save).mockImplementationOnce(() => {
 					throw new Error("Internal database connection pool exhausted");
 				});
 
@@ -745,23 +707,20 @@ const code = "example";
 			]);
 
 			// Verify each concurrent call was made with correct data
-			expect(reportStorage.save).toHaveBeenCalledWith(
-				expect.objectContaining({
-					taskId: "task-concurrent-1",
-					reportType: "requirements",
-				})
+			expect(reportRepository.save).toHaveBeenCalledWith(
+				"task-concurrent-1",
+				"requirements",
+				"c1"
 			);
-			expect(reportStorage.save).toHaveBeenCalledWith(
-				expect.objectContaining({
-					taskId: "task-concurrent-2",
-					reportType: "plan",
-				})
+			expect(reportRepository.save).toHaveBeenCalledWith(
+				"task-concurrent-2",
+				"plan",
+				"c2"
 			);
-			expect(reportStorage.save).toHaveBeenCalledWith(
-				expect.objectContaining({
-					taskId: "task-concurrent-3",
-					reportType: "implementation",
-				})
+			expect(reportRepository.save).toHaveBeenCalledWith(
+				"task-concurrent-3",
+				"implementation",
+				"c3"
 			);
 		});
 	});
