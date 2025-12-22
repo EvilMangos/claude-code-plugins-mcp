@@ -4,7 +4,7 @@ MCP (Model Context Protocol) server for Claude Code plugins workflow data storag
 
 ## Overview
 
-This server provides tools for storing and retrieving workflow reports during Claude Code plugin execution. It enables plugins to persist state across different workflow stages such as requirements gathering, planning, implementation, testing, and code review.
+This server provides tools for storing and retrieving workflow reports and signals during Claude Code plugin execution. It enables plugins to persist state across different workflow stages such as requirements gathering, planning, implementation, testing, and code review.
 
 ## Installation
 
@@ -49,9 +49,32 @@ Retrieve a previously saved workflow report.
 - `taskId` (string, required) - Unique identifier for the task
 - `reportType` (string, required) - One of the valid workflow stages
 
-### Valid Report Types
+#### `save-signal`
 
-Reports can be saved for the following workflow stages:
+Save a workflow signal with status and summary for a specific task and stage.
+
+**Parameters:**
+- `taskId` (string, required) - Unique identifier for the task
+- `signalType` (string, required) - One of the valid workflow stages
+- `status` (string, required) - Signal status: `"passed"` or `"failed"`
+- `summary` (string, required) - Brief summary of the signal
+
+#### `get-signal`
+
+Retrieve a previously saved workflow signal.
+
+**Parameters:**
+- `taskId` (string, required) - Unique identifier for the task
+- `signalType` (string, required) - One of the valid workflow stages
+
+**Returns:**
+- `{ success: true, content: { status, summary } }` when signal exists
+- `{ success: true, content: null }` when signal does not exist
+- `{ success: false, error: "message" }` on validation or storage error
+
+### Valid Report/Signal Types
+
+Reports and signals can be saved for the following workflow stages:
 
 | Stage | Description |
 |-------|-------------|

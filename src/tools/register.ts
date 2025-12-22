@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getReportSchema } from "../report/schemas/get-report.schema";
 import { saveReportSchema } from "../report/schemas/save-report.schema";
+import { getSignalSchema } from "../signal/schemas/get-signal.schema";
 import { saveSignalSchema } from "../signal/schemas/save-signal.schema";
 import { TOKENS, container } from "../container";
 import { IReportService } from "../report/types/report-service.interface";
@@ -46,6 +47,18 @@ export function registerTools(server: McpServer): void {
 		},
 		async (input) => {
 			const result = await signalService.saveSignal(input);
+			return { content: [{ type: "text", text: JSON.stringify(result) }] };
+		}
+	);
+
+	server.registerTool(
+		"get-signal",
+		{
+			description: "Get a workflow signal",
+			inputSchema: getSignalSchema.shape,
+		},
+		async (input) => {
+			const result = await signalService.getSignal(input);
 			return { content: [{ type: "text", text: JSON.stringify(result) }] };
 		}
 	);

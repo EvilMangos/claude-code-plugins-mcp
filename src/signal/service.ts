@@ -3,12 +3,14 @@ import { TOKENS } from "../container";
 import type { ISignalRepository } from "./types/signal-repository.interface";
 import type { ISignalService } from "./types/signal-service.interface";
 import type { ISaveSignalResult } from "./types/save-signal-result.interface";
+import type { IGetSignalResult } from "./types/get-signal-result.interface";
 import { formatStorageError } from "../utils/format-storage.error";
 import { formatZodError } from "../utils/format-zod.error";
 import {
 	SaveSignalInput,
 	saveSignalSchema,
 } from "./schemas/save-signal.schema";
+import { GetSignalInput, getSignalSchema } from "./schemas/get-signal.schema";
 
 /**
  * Service for managing workflow signals.
@@ -48,6 +50,45 @@ export class SignalServiceImpl implements ISignalService {
 			);
 
 			return { success: true };
+		} catch (error) {
+			return {
+				success: false,
+				error: formatStorageError(error),
+			};
+		}
+	}
+
+	/**
+	 * Get a workflow signal from in-memory storage.
+	 * @param input - The signal input containing taskId and signalType
+	 * @returns A result object with success status and optional signal content or error message
+	 */
+	async getSignal(input: GetSignalInput): Promise<IGetSignalResult> {
+		// Validate input
+		const parseResult = getSignalSchema.safeParse(input);
+
+		if (!parseResult.success) {
+			return {
+				success: false,
+				error: formatZodError(parseResult.error),
+			};
+		}
+
+		const validatedInput = parseResult.data;
+
+		try {
+			// Get signal from repository
+			const signal = this.repository.get(
+				validatedInput.taskId,
+				validatedInput.signalType
+			);
+
+			if (signal) {
+				return { success: true, content: signal.content };
+			}
+
+			// Signal not found
+			return { success: true, content: null };
 		} catch (error) {
 			return {
 				success: false,
