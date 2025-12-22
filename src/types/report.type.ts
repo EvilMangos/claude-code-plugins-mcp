@@ -1,5 +1,5 @@
 /**
- * Valid report types corresponding to workflow stages.
+ * Valid report types corresponding to workflow steps.
  */
 export const REPORT_TYPES = [
 	"requirements",

@@ -9,4 +9,5 @@ export const taskIdSchema = z
 	.min(1, "taskId is required")
 	.refine((val) => val.trim().length > 0, {
 		message: "taskId cannot be whitespace only",
-	});
+	})
+	.describe("Unique identifier for the workflow task");

@@ -55,8 +55,12 @@ export class SignalServiceImpl implements ISignalService {
 				validatedInput.content
 			);
 
-			// Auto-update metadata for this task
-			this.metadataRepository.save(validatedInput.taskId);
+			// Update metadata step based on signal status
+			if (validatedInput.content.status === "passed") {
+				this.metadataRepository.incrementStep(validatedInput.taskId);
+			} else {
+				this.metadataRepository.decrementStep(validatedInput.taskId);
+			}
 
 			return { success: true };
 		} catch (error) {

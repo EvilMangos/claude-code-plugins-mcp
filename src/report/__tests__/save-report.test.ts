@@ -474,7 +474,7 @@ describe("ReportService.saveReport", () => {
 		});
 
 		it.concurrent(
-			"should export REPORT_TYPES containing all valid workflow stages",
+			"should export REPORT_TYPES containing all valid workflow steps",
 			() => {
 				const expectedTypes = [
 					"requirements",

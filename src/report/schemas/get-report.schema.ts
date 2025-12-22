@@ -7,9 +7,11 @@ import { taskIdSchema } from "../../schemas/shared.schema";
  */
 export const getReportSchema = z.object({
 	taskId: taskIdSchema,
-	reportType: z.enum(REPORT_TYPES, {
-		message: "reportType must be a valid workflow stage",
-	}),
+	reportType: z
+		.enum(REPORT_TYPES, {
+			message: "reportType must be a valid workflow step",
+		})
+		.describe("Workflow step"),
 });
 
 /**

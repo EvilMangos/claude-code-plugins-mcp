@@ -4,7 +4,7 @@ MCP (Model Context Protocol) server for Claude Code plugins workflow data storag
 
 ## Overview
 
-This server provides tools for storing and retrieving workflow reports and signals during Claude Code plugin execution. It enables plugins to persist state across different workflow stages such as requirements gathering, planning, implementation, testing, and code review.
+This server provides tools for storing and retrieving workflow reports and signals during Claude Code plugin execution. It enables plugins to persist state across different workflow steps such as requirements gathering, planning, implementation, testing, and code review.
 
 ## Installation
 
@@ -34,11 +34,11 @@ Add this server to your Claude Code MCP configuration:
 
 #### `save-report`
 
-Save a workflow report for a specific task and stage.
+Save a workflow report for a specific task and step.
 
 **Parameters:**
 - `taskId` (string, required) - Unique identifier for the task
-- `reportType` (string, required) - One of the valid workflow stages
+- `reportType` (string, required) - One of the valid workflow steps
 - `content` (string, required) - Report content to save
 
 #### `get-report`
@@ -47,15 +47,15 @@ Retrieve a previously saved workflow report.
 
 **Parameters:**
 - `taskId` (string, required) - Unique identifier for the task
-- `reportType` (string, required) - One of the valid workflow stages
+- `reportType` (string, required) - One of the valid workflow steps
 
 #### `save-signal`
 
-Save a workflow signal with status and summary for a specific task and stage.
+Save a workflow signal with status and summary for a specific task and step.
 
 **Parameters:**
 - `taskId` (string, required) - Unique identifier for the task
-- `signalType` (string, required) - One of the valid workflow stages
+- `signalType` (string, required) - One of the valid workflow steps
 - `status` (string, required) - Signal status: `"passed"` or `"failed"`
 - `summary` (string, required) - Brief summary of the signal
 
@@ -65,7 +65,7 @@ Retrieve a previously saved workflow signal.
 
 **Parameters:**
 - `taskId` (string, required) - Unique identifier for the task
-- `signalType` (string, required) - One of the valid workflow stages
+- `signalType` (string, required) - One of the valid workflow steps
 
 **Returns:**
 - `{ success: true, content: { status, summary } }` when signal exists
@@ -74,22 +74,22 @@ Retrieve a previously saved workflow signal.
 
 ### Valid Report/Signal Types
 
-Reports and signals can be saved for the following workflow stages:
+Reports and signals can be saved for the following workflow steps:
 
-| Stage | Description |
-|-------|-------------|
-| `requirements` | Requirements analysis |
-| `plan` | Implementation planning |
-| `tests-design` | Test design phase |
-| `tests-review` | Test review phase |
+| Step             | Description |
+|------------------|-------------|
+| `requirements`   | Requirements analysis |
+| `plan`           | Implementation planning |
+| `tests-design`   | Test design phase |
+| `tests-review`   | Test review phase |
 | `implementation` | Code implementation |
-| `stabilization` | Bug fixing and stabilization |
-| `acceptance` | Acceptance testing |
-| `performance` | Performance review |
-| `security` | Security review |
-| `refactoring` | Code refactoring |
-| `code-review` | Code review |
-| `documentation` | Documentation updates |
+| `stabilization`  | Bug fixing and stabilization |
+| `acceptance`     | Acceptance testing |
+| `performance`    | Performance review |
+| `security`       | Security review |
+| `refactoring`    | Code refactoring |
+| `code-review`    | Code review |
+| `documentation`  | Documentation updates |
 
 ## Development
 

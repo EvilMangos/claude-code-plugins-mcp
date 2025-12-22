@@ -11,16 +11,21 @@ import {
  */
 export const waitSignalSchema = z.object({
 	taskId: taskIdSchema,
-	signalType: z.enum(REPORT_TYPES, {
-		message: "signalType must be a valid workflow stage",
-	}),
+	signalType: z
+		.enum(REPORT_TYPES, {
+			message: "signalType must be a valid workflow step",
+		})
+		.describe("Workflow step to wait for"),
 	timeoutMs: z
 		.number()
 		.int()
 		.positive()
 		.max(600000)
 		.optional()
-		.default(DEFAULT_TIMEOUT_MS),
+		.default(DEFAULT_TIMEOUT_MS)
+		.describe(
+			"Maximum wait time in milliseconds (default: 30000, max: 600000)"
+		),
 	pollIntervalMs: z
 		.number()
 		.int()
@@ -28,7 +33,10 @@ export const waitSignalSchema = z.object({
 		.min(100)
 		.max(60000)
 		.optional()
-		.default(DEFAULT_POLL_INTERVAL_MS),
+		.default(DEFAULT_POLL_INTERVAL_MS)
+		.describe(
+			"Polling interval in milliseconds (default: 1000, min: 100, max: 60000)"
+		),
 });
 
 /**

@@ -18,7 +18,7 @@ export class ReportRepositoryImpl implements IReportRepository {
 	/**
 	 * Save a report to report-repository with auto-generated timestamp.
 	 * @param taskId - The task identifier
-	 * @param reportType - The type of report (workflow stage)
+	 * @param reportType - The type of report (workflow step)
 	 * @param content - The report content
 	 */
 	save(taskId: string, reportType: ReportType, content: string): void {
@@ -34,7 +34,7 @@ export class ReportRepositoryImpl implements IReportRepository {
 	/**
 	 * Get a report from report-repository.
 	 * @param taskId - The task identifier
-	 * @param reportType - The type of report (workflow stage)
+	 * @param reportType - The type of report (workflow step)
 	 * @returns The stored report if found, undefined otherwise
 	 */
 	get(taskId: string, reportType: ReportType): IStoredReport | undefined {

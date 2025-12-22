@@ -59,11 +59,11 @@ Report-related functionality for storing and retrieving workflow reports:
 Signal-related functionality for storing and retrieving workflow signals with status/summary:
 
 - **Schemas**: `src/signal/schemas/` - Zod schemas for save-signal and get-signal
-- **Types**: `src/signal/types/` - Signal interfaces and `signal.type.ts` (SIGNAL_STATUSES: passed/failed)
+- **Types**: `src/signal/types/` - Signal interfaces and `signal-status.type.ts` (SIGNAL_STATUSES: passed/failed)
 - **Repository**: `src/signal/repository/` - Two-layer storage architecture similar to report
 - **Service**: `src/signal/service.ts` - Business logic for signal operations (saveSignal, getSignal)
 
-The `reportType`/`signalType` must be one of the 12 valid workflow stages defined in `REPORT_TYPES`.
+The `reportType`/`signalType` must be one of the 12 valid workflow steps defined in `REPORT_TYPES`.
 
 ### Adding New Tools
 

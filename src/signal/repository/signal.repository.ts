@@ -19,7 +19,7 @@ export class SignalRepositoryImpl implements ISignalRepository {
 	/**
 	 * Save a signal to storage with auto-generated timestamp.
 	 * @param taskId - The task identifier
-	 * @param signalType - The type of signal (workflow stage)
+	 * @param signalType - The type of signal (workflow step)
 	 * @param content - The signal content with status and summary
 	 */
 	save(taskId: string, signalType: ReportType, content: SignalContent): void {
@@ -35,7 +35,7 @@ export class SignalRepositoryImpl implements ISignalRepository {
 	/**
 	 * Get a signal from storage.
 	 * @param taskId - The task identifier
-	 * @param signalType - The type of signal (workflow stage)
+	 * @param signalType - The type of signal (workflow step)
 	 * @returns The stored signal if found, undefined otherwise
 	 */
 	get(taskId: string, signalType: ReportType): IStoredSignal | undefined {

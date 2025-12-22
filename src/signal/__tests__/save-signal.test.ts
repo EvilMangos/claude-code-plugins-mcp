@@ -4,7 +4,7 @@ import { ReportType } from "../../types/report.type";
 import { SaveSignalInput } from "../schemas/save-signal.schema";
 import { SignalServiceImpl } from "../service";
 import type { ISignalRepository } from "../types/signal-repository.interface";
-import { SIGNAL_STATUSES, SignalStatus } from "../types/signal.type";
+import { SIGNAL_STATUSES, SignalStatus } from "../types/signal-status.type";
 
 /**
  * Test-only type that allows any string for signalType to test validation.
@@ -26,9 +26,11 @@ const mockRepository: ISignalRepository = {
 
 // Create mock metadata repository
 const mockMetadataRepository: IMetadataRepository = {
-	save: vi.fn(),
+	create: vi.fn(),
 	get: vi.fn(),
 	exists: vi.fn(),
+	incrementStep: vi.fn(),
+	decrementStep: vi.fn(),
 	clear: vi.fn(),
 };
 

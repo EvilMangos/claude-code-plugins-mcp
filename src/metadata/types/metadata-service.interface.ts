@@ -1,13 +1,13 @@
-import type { GetMetadataInput } from "../schemas/get-metadata.schema.js";
-import type { SaveMetadataInput } from "../schemas/save-metadata.schema.js";
-import type { IGetMetadataResult } from "./get-metadata-result.interface.js";
-import type { ISaveMetadataResult } from "./save-metadata-result.interface.js";
+import type { CreateMetadataInput } from "../schemas/create-metadata.schema.js";
+import type { GetNextStepInput } from "../schemas/get-next-step.schema.js";
+import type { ICreateMetadataResult } from "./create-metadata-result.interface.js";
+import type { IGetNextStepResult } from "./get-next-step-result.interface.js";
 
 /**
  * Service layer interface for metadata operations.
  */
 export interface IMetadataService {
-	saveMetadata(input: SaveMetadataInput): Promise<ISaveMetadataResult>;
-	getMetadata(input: GetMetadataInput): Promise<IGetMetadataResult>;
+	createMetadata(input: CreateMetadataInput): Promise<ICreateMetadataResult>;
+	getNextStep(input: GetNextStepInput): Promise<IGetNextStepResult>;
 	taskExists(taskId: string): boolean;
 }

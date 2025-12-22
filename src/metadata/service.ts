@@ -4,21 +4,21 @@ import { TOKENS } from "../container";
 import { formatStorageError } from "../utils/format-storage.error.js";
 import { formatZodError } from "../utils/format-zod.error.js";
 import {
-	type GetMetadataInput,
-	getMetadataSchema,
-} from "./schemas/get-metadata.schema.js";
+	type CreateMetadataInput,
+	createMetadataSchema,
+} from "./schemas/create-metadata.schema.js";
 import {
-	type SaveMetadataInput,
-	saveMetadataSchema,
-} from "./schemas/save-metadata.schema.js";
-import type { IGetMetadataResult } from "./types/get-metadata-result.interface.js";
+	type GetNextStepInput,
+	getNextStepSchema,
+} from "./schemas/get-next-step.schema.js";
+import type { ICreateMetadataResult } from "./types/create-metadata-result.interface.js";
+import type { IGetNextStepResult } from "./types/get-next-step-result.interface.js";
 import type { IMetadataRepository } from "./types/metadata-repository.interface.js";
 import type { IMetadataService } from "./types/metadata-service.interface.js";
-import type { ISaveMetadataResult } from "./types/save-metadata-result.interface.js";
 
 /**
  * Service for managing task metadata.
- * Provides methods to save and retrieve task lifecycle information.
+ * Provides methods to create and retrieve task lifecycle information.
  */
 @injectable()
 export class MetadataServiceImpl implements IMetadataService {
@@ -28,10 +28,12 @@ export class MetadataServiceImpl implements IMetadataService {
 	) {}
 
 	/**
-	 * Save or update metadata for a task.
+	 * Create metadata for a new task.
 	 */
-	async saveMetadata(input: SaveMetadataInput): Promise<ISaveMetadataResult> {
-		const parseResult = saveMetadataSchema.safeParse(input);
+	async createMetadata(
+		input: CreateMetadataInput
+	): Promise<ICreateMetadataResult> {
+		const parseResult = createMetadataSchema.safeParse(input);
 
 		if (!parseResult.success) {
 			return {
@@ -43,7 +45,10 @@ export class MetadataServiceImpl implements IMetadataService {
 		const validatedInput = parseResult.data;
 
 		try {
-			this.repository.save(validatedInput.taskId, validatedInput.completed);
+			this.repository.create(
+				validatedInput.taskId,
+				validatedInput.executionSteps
+			);
 			return { success: true };
 		} catch (error) {
 			return {
@@ -54,10 +59,10 @@ export class MetadataServiceImpl implements IMetadataService {
 	}
 
 	/**
-	 * Get metadata for a task.
+	 * Get the next step for a task.
 	 */
-	async getMetadata(input: GetMetadataInput): Promise<IGetMetadataResult> {
-		const parseResult = getMetadataSchema.safeParse(input);
+	async getNextStep(input: GetNextStepInput): Promise<IGetNextStepResult> {
+		const parseResult = getNextStepSchema.safeParse(input);
 
 		if (!parseResult.success) {
 			return {
@@ -70,9 +75,24 @@ export class MetadataServiceImpl implements IMetadataService {
 
 		try {
 			const metadata = this.repository.get(validatedInput.taskId);
+
+			if (!metadata) {
+				return {
+					success: false,
+					error: `Metadata not found for taskId: ${validatedInput.taskId}`,
+				};
+			}
+
+			const { currentStepIndex, executionSteps, completedAt } = metadata;
+			const isComplete = !!completedAt;
+
 			return {
 				success: true,
-				metadata: metadata ?? null,
+				taskId: validatedInput.taskId,
+				stepNumber: currentStepIndex + 1,
+				totalSteps: executionSteps.length,
+				step: isComplete ? undefined : executionSteps[currentStepIndex],
+				complete: isComplete,
 			};
 		} catch (error) {
 			return {

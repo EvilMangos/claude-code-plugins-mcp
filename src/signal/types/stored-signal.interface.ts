@@ -1,5 +1,5 @@
 import type { ReportType } from "../../types/report.type";
-import type { SignalContent } from "../schemas/save-signal.schema";
+import { SignalContent } from "../schemas/signal-content.schema";
 
 /**
  * Stored signal structure.

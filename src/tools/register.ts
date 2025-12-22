@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { TOKENS, container } from "../container";
-import { getMetadataSchema } from "../metadata/schemas/get-metadata.schema";
-import { saveMetadataSchema } from "../metadata/schemas/save-metadata.schema";
+import { createMetadataSchema } from "../metadata/schemas/create-metadata.schema";
+import { getNextStepSchema } from "../metadata/schemas/get-next-step.schema";
 import type { IMetadataService } from "../metadata/types/metadata-service.interface";
 import { getReportSchema } from "../report/schemas/get-report.schema";
 import { saveReportSchema } from "../report/schemas/save-report.schema";
@@ -71,25 +71,25 @@ export function registerTools(server: McpServer): void {
 	);
 
 	server.registerTool(
-		"save-metadata",
+		"create-metadata",
 		{
-			description: "Save or update task lifecycle metadata",
-			inputSchema: saveMetadataSchema.shape,
+			description: "Create task lifecycle metadata with execution steps",
+			inputSchema: createMetadataSchema.shape,
 		},
 		async (input) => {
-			const result = await metadataService.saveMetadata(input);
+			const result = await metadataService.createMetadata(input);
 			return { content: [{ type: "text", text: JSON.stringify(result) }] };
 		}
 	);
 
 	server.registerTool(
-		"get-metadata",
+		"get-next-step",
 		{
-			description: "Get task lifecycle metadata",
-			inputSchema: getMetadataSchema.shape,
+			description: "Get the next workflow step for a task",
+			inputSchema: getNextStepSchema.shape,
 		},
 		async (input) => {
-			const result = await metadataService.getMetadata(input);
+			const result = await metadataService.getNextStep(input);
 			return { content: [{ type: "text", text: JSON.stringify(result) }] };
 		}
 	);
