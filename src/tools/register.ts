@@ -1,11 +1,14 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { TOKENS, container } from "../container";
+import { getMetadataSchema } from "../metadata/schemas/get-metadata.schema";
+import { saveMetadataSchema } from "../metadata/schemas/save-metadata.schema";
+import type { IMetadataService } from "../metadata/types/metadata-service.interface";
 import { getReportSchema } from "../report/schemas/get-report.schema";
 import { saveReportSchema } from "../report/schemas/save-report.schema";
-import { getSignalSchema } from "../signal/schemas/get-signal.schema";
+import type { IReportService } from "../report/types/report-service.interface";
 import { saveSignalSchema } from "../signal/schemas/save-signal.schema";
-import { TOKENS, container } from "../container";
-import { IReportService } from "../report/types/report-service.interface";
-import { ISignalService } from "../signal/types/signal-service.interface";
+import { waitSignalSchema } from "../signal/schemas/wait-signal.schema";
+import type { ISignalService } from "../signal/types/signal-service.interface";
 
 /**
  * Register all MCP tools with the server.
@@ -14,6 +17,9 @@ import { ISignalService } from "../signal/types/signal-service.interface";
 export function registerTools(server: McpServer): void {
 	const reportService = container.get<IReportService>(TOKENS.ReportService);
 	const signalService = container.get<ISignalService>(TOKENS.SignalService);
+	const metadataService = container.get<IMetadataService>(
+		TOKENS.MetadataService
+	);
 
 	server.registerTool(
 		"save-report",
@@ -52,13 +58,38 @@ export function registerTools(server: McpServer): void {
 	);
 
 	server.registerTool(
-		"get-signal",
+		"wait-signal",
 		{
-			description: "Get a workflow signal",
-			inputSchema: getSignalSchema.shape,
+			description:
+				"Wait for a workflow signal to appear. Polls until the signal is found or timeout is reached.",
+			inputSchema: waitSignalSchema.shape,
 		},
 		async (input) => {
-			const result = await signalService.getSignal(input);
+			const result = await signalService.waitSignal(input);
+			return { content: [{ type: "text", text: JSON.stringify(result) }] };
+		}
+	);
+
+	server.registerTool(
+		"save-metadata",
+		{
+			description: "Save or update task lifecycle metadata",
+			inputSchema: saveMetadataSchema.shape,
+		},
+		async (input) => {
+			const result = await metadataService.saveMetadata(input);
+			return { content: [{ type: "text", text: JSON.stringify(result) }] };
+		}
+	);
+
+	server.registerTool(
+		"get-metadata",
+		{
+			description: "Get task lifecycle metadata",
+			inputSchema: getMetadataSchema.shape,
+		},
+		async (input) => {
+			const result = await metadataService.getMetadata(input);
 			return { content: [{ type: "text", text: JSON.stringify(result) }] };
 		}
 	);

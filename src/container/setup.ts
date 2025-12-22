@@ -1,12 +1,18 @@
+import { MetadataRepositoryImpl } from "../metadata/repository/metadata.repository";
+import { MetadataStorageImpl } from "../metadata/repository/metadata.storage";
+import { MetadataServiceImpl } from "../metadata/service";
+import type { IMetadataRepository } from "../metadata/types/metadata-repository.interface";
+import type { IMetadataService } from "../metadata/types/metadata-service.interface";
+import type { IMetadataStorage } from "../metadata/types/metadata-storage.interface";
 import { ReportRepositoryImpl } from "../report/repository/report.repository";
 import { ReportStorageImpl } from "../report/repository/report.storage";
-import { SignalRepositoryImpl } from "../signal/repository/signal.repository";
-import { SignalStorageImpl } from "../signal/repository/signal.storage";
 import { ReportServiceImpl } from "../report/service";
-import { SignalServiceImpl } from "../signal/service";
 import type { IReportRepository } from "../report/types/report-repository.interface";
 import type { IReportService } from "../report/types/report-service.interface";
 import type { IReportStorage } from "../report/types/report-storage.interface";
+import { SignalRepositoryImpl } from "../signal/repository/signal.repository";
+import { SignalStorageImpl } from "../signal/repository/signal.storage";
+import { SignalServiceImpl } from "../signal/service";
 import type { ISignalRepository } from "../signal/types/signal-repository.interface";
 import type { ISignalService } from "../signal/types/signal-service.interface";
 import type { ISignalStorage } from "../signal/types/signal-storage.interface";
@@ -63,6 +69,30 @@ export function setupContainer(): void {
 		container
 			.bind<ISignalService>(TOKENS.SignalService)
 			.to(SignalServiceImpl)
+			.inSingletonScope();
+	}
+
+	// Bind metadata storage (if not already bound)
+	if (!container.isBound(TOKENS.MetadataStorage)) {
+		container
+			.bind<IMetadataStorage>(TOKENS.MetadataStorage)
+			.to(MetadataStorageImpl)
+			.inSingletonScope();
+	}
+
+	// Bind metadata repository (if not already bound)
+	if (!container.isBound(TOKENS.MetadataRepository)) {
+		container
+			.bind<IMetadataRepository>(TOKENS.MetadataRepository)
+			.to(MetadataRepositoryImpl)
+			.inSingletonScope();
+	}
+
+	// Bind metadata service (if not already bound)
+	if (!container.isBound(TOKENS.MetadataService)) {
+		container
+			.bind<IMetadataService>(TOKENS.MetadataService)
+			.to(MetadataServiceImpl)
 			.inSingletonScope();
 	}
 }

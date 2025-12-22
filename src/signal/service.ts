@@ -1,16 +1,20 @@
 import { inject, injectable } from "inversify";
 import { TOKENS } from "../container";
-import type { ISignalRepository } from "./types/signal-repository.interface";
-import type { ISignalService } from "./types/signal-service.interface";
-import type { ISaveSignalResult } from "./types/save-signal-result.interface";
-import type { IGetSignalResult } from "./types/get-signal-result.interface";
+import type { IMetadataRepository } from "../metadata/types/metadata-repository.interface";
 import { formatStorageError } from "../utils/format-storage.error";
 import { formatZodError } from "../utils/format-zod.error";
 import {
-	SaveSignalInput,
+	type SaveSignalInput,
 	saveSignalSchema,
 } from "./schemas/save-signal.schema";
-import { GetSignalInput, getSignalSchema } from "./schemas/get-signal.schema";
+import {
+	type WaitSignalInput,
+	waitSignalSchema,
+} from "./schemas/wait-signal.schema";
+import type { ISaveSignalResult } from "./types/save-signal-result.interface";
+import type { ISignalRepository } from "./types/signal-repository.interface";
+import type { ISignalService } from "./types/signal-service.interface";
+import type { IWaitSignalResult } from "./types/wait-signal-result.interface";
 
 /**
  * Service for managing workflow signals.
@@ -20,7 +24,9 @@ import { GetSignalInput, getSignalSchema } from "./schemas/get-signal.schema";
 export class SignalServiceImpl implements ISignalService {
 	constructor(
 		@inject(TOKENS.SignalRepository)
-		private readonly repository: ISignalRepository
+		private readonly repository: ISignalRepository,
+		@inject(TOKENS.MetadataRepository)
+		private readonly metadataRepository: IMetadataRepository
 	) {}
 
 	/**
@@ -49,6 +55,9 @@ export class SignalServiceImpl implements ISignalService {
 				validatedInput.content
 			);
 
+			// Auto-update metadata for this task
+			this.metadataRepository.save(validatedInput.taskId);
+
 			return { success: true };
 		} catch (error) {
 			return {
@@ -59,13 +68,14 @@ export class SignalServiceImpl implements ISignalService {
 	}
 
 	/**
-	 * Get a workflow signal from in-memory storage.
-	 * @param input - The signal input containing taskId and signalType
-	 * @returns A result object with success status and optional signal content or error message
+	 * Wait for a workflow signal to appear in storage.
+	 * Polls the storage at regular intervals until the signal is found or timeout is reached.
+	 * @param input - The signal input containing taskId, signalType, and optional timeout/polling settings
+	 * @returns A result object with success status, signal content if found, wait time, or error message
 	 */
-	async getSignal(input: GetSignalInput): Promise<IGetSignalResult> {
+	async waitSignal(input: WaitSignalInput): Promise<IWaitSignalResult> {
 		// Validate input
-		const parseResult = getSignalSchema.safeParse(input);
+		const parseResult = waitSignalSchema.safeParse(input);
 
 		if (!parseResult.success) {
 			return {
@@ -75,25 +85,47 @@ export class SignalServiceImpl implements ISignalService {
 		}
 
 		const validatedInput = parseResult.data;
+		const { taskId, signalType, timeoutMs, pollIntervalMs } = validatedInput;
+
+		const startTime = Date.now();
 
 		try {
-			// Get signal from repository
-			const signal = this.repository.get(
-				validatedInput.taskId,
-				validatedInput.signalType
-			);
+			// Poll until signal is found or timeout
+			while (Date.now() - startTime < timeoutMs) {
+				const signal = this.repository.get(taskId, signalType);
 
-			if (signal) {
-				return { success: true, content: signal.content };
+				if (signal) {
+					return {
+						success: true,
+						content: signal.content,
+						waitedMs: Date.now() - startTime,
+					};
+				}
+
+				// Wait before next poll
+				await this.sleep(pollIntervalMs);
 			}
 
-			// Signal not found
-			return { success: true, content: null };
+			// Timeout reached
+			return {
+				success: false,
+				error: `Timeout after ${timeoutMs}ms waiting for signal '${signalType}' (taskId: ${taskId})`,
+				waitedMs: Date.now() - startTime,
+			};
 		} catch (error) {
 			return {
 				success: false,
 				error: formatStorageError(error),
+				waitedMs: Date.now() - startTime,
 			};
 		}
+	}
+
+	/**
+	 * Sleep for a specified duration.
+	 * @param ms - Duration in milliseconds
+	 */
+	private sleep(ms: number): Promise<void> {
+		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
 }

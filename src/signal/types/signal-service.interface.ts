@@ -1,7 +1,7 @@
 import type { ISaveSignalResult } from "./save-signal-result.interface";
-import type { IGetSignalResult } from "./get-signal-result.interface";
+import type { IWaitSignalResult } from "./wait-signal-result.interface";
 import type { SaveSignalInput } from "../schemas/save-signal.schema";
-import type { GetSignalInput } from "../schemas/get-signal.schema";
+import type { WaitSignalInput } from "../schemas/wait-signal.schema";
 
 /**
  * Interface for signal service operations.
@@ -15,9 +15,10 @@ export interface ISignalService {
 	saveSignal(input: SaveSignalInput): Promise<ISaveSignalResult>;
 
 	/**
-	 * Get a workflow signal from storage.
-	 * @param input - The signal input containing taskId and signalType
-	 * @returns A result object with success status and optional signal content or error message
+	 * Wait for a workflow signal to appear in storage.
+	 * Polls the storage at regular intervals until the signal is found or timeout is reached.
+	 * @param input - The signal input containing taskId, signalType, and optional timeout/polling settings
+	 * @returns A result object with success status, signal content if found, wait time, or error message
 	 */
-	getSignal(input: GetSignalInput): Promise<IGetSignalResult>;
+	waitSignal(input: WaitSignalInput): Promise<IWaitSignalResult>;
 }
