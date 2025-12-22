@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
-import { TOKENS } from "../container";
-import type { ReportType } from "../types/report.type";
+import { TOKENS } from "../../container";
+import type { ReportType } from "../../types/report.type";
 import type { IReportRepository } from "../types/report-repository.interface";
 import type { IReportStorage } from "../types/report-storage.interface";
 import type { IStoredReport } from "../types/stored-report.interface";

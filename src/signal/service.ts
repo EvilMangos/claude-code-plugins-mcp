@@ -1,8 +1,8 @@
 import { inject, injectable } from "inversify";
 import { TOKENS } from "../container";
-import type { ISignalRepository } from "../types/signal-repository.interface";
-import type { ISignalService } from "../types/signal-service.interface";
-import type { ISaveSignalResult } from "../types/save-signal-result.interface";
+import type { ISignalRepository } from "./types/signal-repository.interface";
+import type { ISignalService } from "./types/signal-service.interface";
+import type { ISaveSignalResult } from "./types/save-signal-result.interface";
 import { formatStorageError } from "../utils/format-storage.error";
 import { formatZodError } from "../utils/format-zod.error";
 import {

@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import type { ReportType } from "../types/report.type";
+import type { ReportType } from "../../types/report.type";
 import type { IReportStorage } from "../types/report-storage.interface";
 import type { IStoredReport } from "../types/stored-report.interface";
 

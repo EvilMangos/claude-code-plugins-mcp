@@ -1,10 +1,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getReportSchema } from "./schemas/get-report.schema";
-import { saveReportSchema } from "./schemas/save-report.schema";
-import { saveSignalSchema } from "./schemas/save-signal.schema";
+import { getReportSchema } from "../report/schemas/get-report.schema";
+import { saveReportSchema } from "../report/schemas/save-report.schema";
+import { saveSignalSchema } from "../signal/schemas/save-signal.schema";
 import { TOKENS, container } from "../container";
-import { IReportService } from "../types/report-service.interface";
-import { ISignalService } from "../types/signal-service.interface";
+import { IReportService } from "../report/types/report-service.interface";
+import { ISignalService } from "../signal/types/signal-service.interface";
 
 /**
  * Register all MCP tools with the server.

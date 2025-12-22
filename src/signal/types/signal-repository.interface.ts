@@ -1,5 +1,5 @@
-import type { ReportType } from "./report.type";
-import type { SignalContent } from "../tools/schemas/save-signal.schema";
+import type { ReportType } from "../../types/report.type";
+import type { SignalContent } from "../schemas/save-signal.schema";
 import type { IStoredSignal } from "./stored-signal.interface";
 
 /**

@@ -1,15 +1,15 @@
-import { ReportRepositoryImpl } from "../report-repository/report.repository";
-import { ReportStorageImpl } from "../report-repository/report.storage";
-import { SignalRepositoryImpl } from "../signal-repository/signal.repository";
-import { SignalStorageImpl } from "../signal-repository/signal.storage";
-import { ReportServiceImpl } from "../tools/report.service";
-import { SignalServiceImpl } from "../tools/signal.service";
-import type { IReportRepository } from "../types/report-repository.interface";
-import type { IReportService } from "../types/report-service.interface";
-import type { IReportStorage } from "../types/report-storage.interface";
-import type { ISignalRepository } from "../types/signal-repository.interface";
-import type { ISignalService } from "../types/signal-service.interface";
-import type { ISignalStorage } from "../types/signal-storage.interface";
+import { ReportRepositoryImpl } from "../report/repository/report.repository";
+import { ReportStorageImpl } from "../report/repository/report.storage";
+import { SignalRepositoryImpl } from "../signal/repository/signal.repository";
+import { SignalStorageImpl } from "../signal/repository/signal.storage";
+import { ReportServiceImpl } from "../report/service";
+import { SignalServiceImpl } from "../signal/service";
+import type { IReportRepository } from "../report/types/report-repository.interface";
+import type { IReportService } from "../report/types/report-service.interface";
+import type { IReportStorage } from "../report/types/report-storage.interface";
+import type { ISignalRepository } from "../signal/types/signal-repository.interface";
+import type { ISignalService } from "../signal/types/signal-service.interface";
+import type { ISignalStorage } from "../signal/types/signal-storage.interface";
 import { container } from "./container";
 import { TOKENS } from "./tokens";
 

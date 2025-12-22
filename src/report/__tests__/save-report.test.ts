@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ReportServiceImpl } from "../report.service";
-import type { IReportRepository } from "../../types/report-repository.interface";
+import { ReportServiceImpl } from "../service";
+import type { IReportRepository } from "../types/report-repository.interface";
 import { REPORT_TYPES, ReportType } from "../../types/report.type";
 import { SaveReportInput } from "../schemas/save-report.schema";
 

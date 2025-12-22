@@ -6,7 +6,7 @@ import {
 } from "./helpers/mcp-test-utils";
 import { REPORT_TYPES } from "../types/report.type";
 import { TOKENS } from "../container";
-import { IReportStorage } from "../types/report-storage.interface";
+import { IReportStorage } from "../report/types/report-storage.interface";
 
 /**
  * Integration tests for MCP tool registration.

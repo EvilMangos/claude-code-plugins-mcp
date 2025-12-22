@@ -29,7 +29,7 @@ pnpm run format
 # Tests
 pnpm test              # Run all tests
 pnpm test:watch        # Watch mode
-pnpm test -- src/tools/__tests__/save-report.test.ts  # Run single test file
+pnpm test -- src/report/__tests__/save-report.test.ts  # Run single test file
 ```
 
 ## Architecture
@@ -38,19 +38,37 @@ The server uses stdio transport for MCP communication:
 
 - **Entry point**: `src/index.ts` - Creates McpServer and connects via StdioServerTransport
 - **Tool registration**: `src/tools/register.ts` - Registers MCP tools with Zod schemas
-- **Tool schemas**: `src/tools/schemas/` - Extracted Zod validation schemas (e.g., `save-report.schema.ts`, `get-report.schema.ts`, `shared.schema.ts`). Shared schemas like `taskIdSchema` are reused across tool schemas.
-- **Types**: `src/types/` - Shared types and constants (e.g., `report.type.ts` exports `REPORT_TYPES` constant and `ReportType` type)
-- **Storage**: Two-layer architecture for report persistence:
-  - `src/storage/report-repository.interface.ts` - **Public interface** for tool handlers. Singleton `reportRepository` provides `save(taskId, reportType, content)`, `get(taskId, reportType)`, and `clear()` methods. Handles timestamp generation internally.
-  - `src/storage/report.storage.ts` - **Internal implementation**. In-memory storage using Map with composite keys (`{taskId}:{reportType}`). Should not be imported directly by tool handlers.
+- **Common schemas**: `src/schemas/` - Shared Zod validation schemas (e.g., `shared.schema.ts` with `taskIdSchema`)
+- **Common types**: `src/types/` - Shared types and constants (e.g., `report.type.ts` exports `REPORT_TYPES` constant and `ReportType` type)
 - **Utilities**: `src/utils/` - Shared helper functions (e.g., `format-zod.error.ts`, `format-storage.error.ts`)
+- **Container**: `src/container/` - Inversify dependency injection setup
 
-The `reportType` must be one of the 12 valid workflow stages defined in `REPORT_TYPES`.
+### Report Module (`src/report/`)
+
+Report-related functionality for storing and retrieving workflow reports:
+
+- **Schemas**: `src/report/schemas/` - Zod schemas for save-report and get-report
+- **Types**: `src/report/types/` - Report interfaces (repository, storage, service, stored-report, result types)
+- **Repository**: `src/report/repository/` - Two-layer storage architecture:
+  - `report.repository.ts` - Public interface with `save(taskId, reportType, content)`, `get(taskId, reportType)`, `clear()`. Handles timestamp generation.
+  - `report.storage.ts` - Internal in-memory Map storage with composite keys (`{taskId}:{reportType}`)
+- **Service**: `src/report/service.ts` - Business logic for report operations
+
+### Signal Module (`src/signal/`)
+
+Signal-related functionality for storing workflow signals with status/summary:
+
+- **Schemas**: `src/signal/schemas/` - Zod schemas for save-signal
+- **Types**: `src/signal/types/` - Signal interfaces and `signal.type.ts` (SIGNAL_STATUSES: passed/failed)
+- **Repository**: `src/signal/repository/` - Two-layer storage architecture similar to report
+- **Service**: `src/signal/service.ts` - Business logic for signal operations
+
+The `reportType`/`signalType` must be one of the 12 valid workflow stages defined in `REPORT_TYPES`.
 
 ### Adding New Tools
 
-1. Create Zod schema in `src/tools/schemas/{tool-name}.schema.ts`
-2. Create handler in `src/tools/{tool-name}.ts` importing the schema
+1. Create Zod schema in the appropriate module's `schemas/` folder
+2. Create service with handler logic in the module
 3. Register in `src/tools/register.ts` using `server.registerTool(name, { description, inputSchema }, handler)`
 
 ## Testing Conventions

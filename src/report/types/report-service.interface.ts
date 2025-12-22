@@ -1,7 +1,7 @@
 import type { IGetReportResult } from "./get-report-result.interface";
 import type { ISaveReportResult } from "./save-report-result.interface";
-import type { GetReportInput } from "../tools/schemas/get-report.schema";
-import type { SaveReportInput } from "../tools/schemas/save-report.schema";
+import type { GetReportInput } from "../schemas/get-report.schema";
+import type { SaveReportInput } from "../schemas/save-report.schema";
 
 /**
  * Interface for report service operations.

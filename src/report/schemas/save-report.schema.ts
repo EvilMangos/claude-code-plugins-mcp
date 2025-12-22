@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { REPORT_TYPES } from "../../types/report.type";
-import { taskIdSchema } from "./shared.schema";
+import { taskIdSchema } from "../../schemas/shared.schema";
 
 /**
  * Zod schema for save-report input validation.

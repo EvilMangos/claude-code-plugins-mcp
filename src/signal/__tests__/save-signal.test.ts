@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SignalServiceImpl } from "../signal.service";
-import type { ISignalRepository } from "../../types/signal-repository.interface";
+import { SignalServiceImpl } from "../service";
+import type { ISignalRepository } from "../types/signal-repository.interface";
 import { ReportType } from "../../types/report.type";
-import { SIGNAL_STATUSES, SignalStatus } from "../../types/signal.type";
+import { SIGNAL_STATUSES, SignalStatus } from "../types/signal.type";
 import { SaveSignalInput } from "../schemas/save-signal.schema";
 
 /**

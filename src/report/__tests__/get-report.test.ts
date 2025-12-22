@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ReportServiceImpl } from "../report.service";
-import type { IReportRepository } from "../../types/report-repository.interface";
+import { ReportServiceImpl } from "../service";
+import type { IReportRepository } from "../types/report-repository.interface";
 import { ReportType } from "../../types/report.type";
 import { GetReportInput } from "../schemas/get-report.schema";
-import type { IStoredReport } from "../../types/stored-report.interface";
+import type { IStoredReport } from "../types/stored-report.interface";
 
 /**
  * Test-only type that allows any string for reportType to test validation.

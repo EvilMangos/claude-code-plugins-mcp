@@ -1,4 +1,4 @@
-import type { ReportType } from "./report.type";
+import type { ReportType } from "../../types/report.type";
 
 /**
  * Stored report structure.

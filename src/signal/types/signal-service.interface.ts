@@ -1,5 +1,5 @@
 import type { ISaveSignalResult } from "./save-signal-result.interface";
-import type { SaveSignalInput } from "../tools/schemas/save-signal.schema";
+import type { SaveSignalInput } from "../schemas/save-signal.schema";
 
 /**
  * Interface for signal service operations.

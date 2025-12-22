@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ReportRepositoryImpl } from "../report.repository";
 import type { IReportStorage } from "../../types/report-storage.interface";
-import type { ReportType } from "../../types/report.type";
+import type { ReportType } from "../../../types/report.type";
 import type { IStoredReport } from "../../types/stored-report.interface";
 
 // Create mock report-repository

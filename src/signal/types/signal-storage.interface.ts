@@ -1,4 +1,4 @@
-import type { ReportType } from "./report.type";
+import type { ReportType } from "../../types/report.type";
 import type { IStoredSignal } from "./stored-signal.interface";
 
 /**

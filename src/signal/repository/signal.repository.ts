@@ -1,10 +1,10 @@
 import { inject, injectable } from "inversify";
-import { TOKENS } from "../container";
-import type { ReportType } from "../types/report.type";
+import { TOKENS } from "../../container";
+import type { ReportType } from "../../types/report.type";
 import type { ISignalRepository } from "../types/signal-repository.interface";
 import type { ISignalStorage } from "../types/signal-storage.interface";
 import type { IStoredSignal } from "../types/stored-signal.interface";
-import type { SignalContent } from "../tools/schemas/save-signal.schema";
+import type { SignalContent } from "../schemas/save-signal.schema";
 
 /**
  * Repository for managing workflow signals.
