@@ -1,6 +1,6 @@
 {
   "name": "@evil-mango/claude-code-plugins-mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "MCP server for claude-code-plugins workflow data storage and retrieval",
   "author": "EvilMangos",
   "type": "module",
