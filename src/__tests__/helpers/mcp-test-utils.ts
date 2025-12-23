@@ -48,6 +48,54 @@ export interface GetReportToolDefinition {
 }
 
 /**
+ * Interface for the save-signal tool definition as retrieved from _registeredTools.
+ */
+export interface SaveSignalToolDefinition {
+	handler?: ToolHandler;
+	inputSchema?: {
+		shape?: Record<string, unknown>;
+		_def?: { shape?: () => Record<string, unknown> };
+	};
+	description?: string;
+}
+
+/**
+ * Interface for the wait-signal tool definition as retrieved from _registeredTools.
+ */
+export interface WaitSignalToolDefinition {
+	handler?: ToolHandler;
+	inputSchema?: {
+		shape?: Record<string, unknown>;
+		_def?: { shape?: () => Record<string, unknown> };
+	};
+	description?: string;
+}
+
+/**
+ * Interface for the create-metadata tool definition as retrieved from _registeredTools.
+ */
+export interface CreateMetadataToolDefinition {
+	handler?: ToolHandler;
+	inputSchema?: {
+		shape?: Record<string, unknown>;
+		_def?: { shape?: () => Record<string, unknown> };
+	};
+	description?: string;
+}
+
+/**
+ * Interface for the get-next-step tool definition as retrieved from _registeredTools.
+ */
+export interface GetNextStepToolDefinition {
+	handler?: ToolHandler;
+	inputSchema?: {
+		shape?: Record<string, unknown>;
+		_def?: { shape?: () => Record<string, unknown> };
+	};
+	description?: string;
+}
+
+/**
  * Creates a fresh McpServer instance for testing.
  * @returns A new McpServer configured for testing.
  */
@@ -90,6 +138,50 @@ export function getGetReportTool(server: McpServer): GetReportToolDefinition {
 }
 
 /**
+ * Gets the save-signal tool from the registered tools with proper typing.
+ * @param server - The McpServer instance with tools registered.
+ * @returns The save-signal tool definition.
+ */
+export function getSaveSignalTool(server: McpServer): SaveSignalToolDefinition {
+	const registeredTools = getRegisteredTools(server);
+	return registeredTools["save-signal"] as SaveSignalToolDefinition;
+}
+
+/**
+ * Gets the wait-signal tool from the registered tools with proper typing.
+ * @param server - The McpServer instance with tools registered.
+ * @returns The wait-signal tool definition.
+ */
+export function getWaitSignalTool(server: McpServer): WaitSignalToolDefinition {
+	const registeredTools = getRegisteredTools(server);
+	return registeredTools["wait-signal"] as WaitSignalToolDefinition;
+}
+
+/**
+ * Gets the create-metadata tool from the registered tools with proper typing.
+ * @param server - The McpServer instance with tools registered.
+ * @returns The create-metadata tool definition.
+ */
+export function getCreateMetadataTool(
+	server: McpServer
+): CreateMetadataToolDefinition {
+	const registeredTools = getRegisteredTools(server);
+	return registeredTools["create-metadata"] as CreateMetadataToolDefinition;
+}
+
+/**
+ * Gets the get-next-step tool from the registered tools with proper typing.
+ * @param server - The McpServer instance with tools registered.
+ * @returns The get-next-step tool definition.
+ */
+export function getGetNextStepTool(
+	server: McpServer
+): GetNextStepToolDefinition {
+	const registeredTools = getRegisteredTools(server);
+	return registeredTools["get-next-step"] as GetNextStepToolDefinition;
+}
+
+/**
  * Result of setupTestServerWithTools containing useful objects for testing.
  */
 export interface TestServerSetup {
@@ -97,6 +189,10 @@ export interface TestServerSetup {
 	registeredTools: RegisteredTools;
 	saveReportTool: SaveReportToolDefinition;
 	getReportTool: GetReportToolDefinition;
+	saveSignalTool: SaveSignalToolDefinition;
+	waitSignalTool: WaitSignalToolDefinition;
+	createMetadataTool: CreateMetadataToolDefinition;
+	getNextStepTool: GetNextStepToolDefinition;
 	container: Container;
 }
 
@@ -156,7 +252,7 @@ export function extractEnumValues(
 /**
  * Convenience function that creates a server, imports and registers tools,
  * and returns useful objects for testing.
- * @returns An object containing the server, registered tools, save-report tool, and get-report tool.
+ * @returns An object containing the server, registered tools, and all 6 tool definitions.
  */
 export async function setupTestServerWithTools(): Promise<TestServerSetup> {
 	// Setup the DI container before registering tools
@@ -170,6 +266,20 @@ export async function setupTestServerWithTools(): Promise<TestServerSetup> {
 	const registeredTools = getRegisteredTools(server);
 	const saveReportTool = getSaveReportTool(server);
 	const getReportTool = getGetReportTool(server);
+	const saveSignalTool = getSaveSignalTool(server);
+	const waitSignalTool = getWaitSignalTool(server);
+	const createMetadataTool = getCreateMetadataTool(server);
+	const getNextStepTool = getGetNextStepTool(server);
 
-	return { server, registeredTools, saveReportTool, getReportTool, container };
+	return {
+		server,
+		registeredTools,
+		saveReportTool,
+		getReportTool,
+		saveSignalTool,
+		waitSignalTool,
+		createMetadataTool,
+		getNextStepTool,
+		container,
+	};
 }

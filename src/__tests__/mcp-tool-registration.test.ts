@@ -577,4 +577,649 @@ describe("MCP Server Tool Registration", () => {
 			}
 		);
 	});
+
+	// ============================================================
+	// save-signal Tool Registration
+	// ============================================================
+	describe("save-signal tool registration", () => {
+		it.concurrent(
+			"should register save-signal tool with the MCP server",
+			async () => {
+				const { registeredTools } = await setupTestServerWithTools();
+
+				expect(registeredTools).toBeDefined();
+				expect("save-signal" in registeredTools).toBe(true);
+			}
+		);
+
+		it.concurrent(
+			"should register save-signal tool with correct schema",
+			async () => {
+				const { saveSignalTool } = await setupTestServerWithTools();
+
+				expect(saveSignalTool).toBeDefined();
+				expect(saveSignalTool.description).toBeDefined();
+				expect(saveSignalTool.inputSchema).toBeDefined();
+			}
+		);
+
+		it.concurrent(
+			"should register save-signal tool with required input fields (taskId, signalType, content)",
+			async () => {
+				const { saveSignalTool } = await setupTestServerWithTools();
+
+				expect(saveSignalTool).toBeDefined();
+				expect(saveSignalTool.inputSchema).toBeDefined();
+
+				const shape = extractSchemaShape(saveSignalTool.inputSchema);
+				if (shape) {
+					expect(shape).toHaveProperty("taskId");
+					expect(shape).toHaveProperty("signalType");
+					expect(shape).toHaveProperty("content");
+				}
+			}
+		);
+	});
+
+	// ============================================================
+	// save-signal Tool Invocation
+	// ============================================================
+	describe("save-signal tool invocation", () => {
+		it.concurrent(
+			"should handle save-signal tool call with valid input",
+			async () => {
+				const { saveSignalTool } = await setupTestServerWithTools();
+
+				expect(saveSignalTool).toBeDefined();
+				expect(saveSignalTool.handler).toBeDefined();
+
+				// Call the handler directly with valid input
+				const result = await saveSignalTool.handler!(
+					{
+						taskId: "test-signal-task-123",
+						signalType: "requirements",
+						content: {
+							status: "passed",
+							summary: "All requirements validated successfully",
+						},
+					},
+					{} // empty extra context
+				);
+
+				expect(result).toBeDefined();
+				expect(result.content).toBeDefined();
+				expect(result.content[0]).toHaveProperty("type", "text");
+
+				// Parse the result text as JSON to verify success
+				const resultData = JSON.parse(result.content[0].text);
+				expect(resultData).toEqual({ success: true });
+			}
+		);
+
+		it.concurrent(
+			"should handle save-signal tool call with invalid input (empty taskId)",
+			async () => {
+				const { saveSignalTool } = await setupTestServerWithTools();
+
+				expect(saveSignalTool).toBeDefined();
+				expect(saveSignalTool.handler).toBeDefined();
+
+				// Call with invalid input (empty taskId)
+				const result = await saveSignalTool.handler!(
+					{
+						taskId: "",
+						signalType: "requirements",
+						content: {
+							status: "passed",
+							summary: "Summary",
+						},
+					},
+					{}
+				);
+
+				expect(result).toBeDefined();
+				expect(result.content).toBeDefined();
+
+				// Parse result - should have success: false with error
+				const resultData = JSON.parse(result.content[0].text);
+				expect(resultData.success).toBe(false);
+				expect(resultData.error).toBeDefined();
+			}
+		);
+
+		it.concurrent(
+			"should return proper MCP response format for save-signal",
+			async () => {
+				const { saveSignalTool } = await setupTestServerWithTools();
+
+				const result = await saveSignalTool.handler!(
+					{
+						taskId: "signal-task-id",
+						signalType: "plan",
+						content: {
+							status: "failed",
+							summary: "Plan review failed",
+						},
+					},
+					{}
+				);
+
+				// Verify MCP response format: { content: [{ type: "text", text: "..." }] }
+				expect(result).toHaveProperty("content");
+				expect(Array.isArray(result.content)).toBe(true);
+				expect(result.content.length).toBeGreaterThan(0);
+				expect(result.content[0]).toHaveProperty("type", "text");
+				expect(typeof result.content[0].text).toBe("string");
+			}
+		);
+	});
+
+	// ============================================================
+	// wait-signal Tool Registration
+	// ============================================================
+	describe("wait-signal tool registration", () => {
+		it.concurrent(
+			"should register wait-signal tool with the MCP server",
+			async () => {
+				const { registeredTools } = await setupTestServerWithTools();
+
+				expect(registeredTools).toBeDefined();
+				expect("wait-signal" in registeredTools).toBe(true);
+			}
+		);
+
+		it.concurrent(
+			"should register wait-signal tool with correct schema",
+			async () => {
+				const { waitSignalTool } = await setupTestServerWithTools();
+
+				expect(waitSignalTool).toBeDefined();
+				expect(waitSignalTool.description).toBeDefined();
+				expect(waitSignalTool.inputSchema).toBeDefined();
+			}
+		);
+
+		it.concurrent(
+			"should register wait-signal tool with required input fields (taskId, signalType)",
+			async () => {
+				const { waitSignalTool } = await setupTestServerWithTools();
+
+				expect(waitSignalTool).toBeDefined();
+				expect(waitSignalTool.inputSchema).toBeDefined();
+
+				const shape = extractSchemaShape(waitSignalTool.inputSchema);
+				if (shape) {
+					expect(shape).toHaveProperty("taskId");
+					expect(shape).toHaveProperty("signalType");
+				}
+			}
+		);
+	});
+
+	// ============================================================
+	// wait-signal Tool Invocation
+	// ============================================================
+	describe("wait-signal tool invocation", () => {
+		it.concurrent(
+			"should handle wait-signal tool call with timeout when signal is missing",
+			async () => {
+				const { waitSignalTool } = await setupTestServerWithTools();
+
+				expect(waitSignalTool).toBeDefined();
+				expect(waitSignalTool.handler).toBeDefined();
+
+				// Call the handler with valid input - will timeout since no signal exists
+				// Use very short timeout to speed up test (pollIntervalMs min is 100)
+				const result = await waitSignalTool.handler!(
+					{
+						taskId: "test-wait-task-123",
+						signalType: "requirements",
+						timeoutMs: 150,
+						pollIntervalMs: 100,
+					},
+					{} // empty extra context
+				);
+
+				expect(result).toBeDefined();
+				expect(result.content).toBeDefined();
+				expect(result.content[0]).toHaveProperty("type", "text");
+
+				// Parse the result - should fail with timeout error
+				const resultData = JSON.parse(result.content[0].text);
+				expect(resultData.success).toBe(false);
+				expect(resultData.error).toContain("Timeout");
+			}
+		);
+
+		it.concurrent(
+			"should handle wait-signal tool call with invalid input (empty taskId)",
+			async () => {
+				const { waitSignalTool } = await setupTestServerWithTools();
+
+				expect(waitSignalTool).toBeDefined();
+				expect(waitSignalTool.handler).toBeDefined();
+
+				// Call with invalid input (empty taskId)
+				const result = await waitSignalTool.handler!(
+					{
+						taskId: "",
+						signalType: "requirements",
+					},
+					{}
+				);
+
+				expect(result).toBeDefined();
+				expect(result.content).toBeDefined();
+
+				// Parse result - should have success: false with error
+				const resultData = JSON.parse(result.content[0].text);
+				expect(resultData.success).toBe(false);
+				expect(resultData.error).toBeDefined();
+			}
+		);
+
+		it.concurrent(
+			"should return proper MCP response format for wait-signal",
+			async () => {
+				const { waitSignalTool } = await setupTestServerWithTools();
+
+				const result = await waitSignalTool.handler!(
+					{
+						taskId: "wait-task-id",
+						signalType: "plan",
+						timeoutMs: 100,
+						pollIntervalMs: 100,
+					},
+					{}
+				);
+
+				// Verify MCP response format: { content: [{ type: "text", text: "..." }] }
+				expect(result).toHaveProperty("content");
+				expect(Array.isArray(result.content)).toBe(true);
+				expect(result.content.length).toBeGreaterThan(0);
+				expect(result.content[0]).toHaveProperty("type", "text");
+				expect(typeof result.content[0].text).toBe("string");
+			}
+		);
+	});
+
+	// ============================================================
+	// wait-signal Integration with save-signal
+	// ============================================================
+	describe("wait-signal integration with save-signal", () => {
+		it.concurrent(
+			"should retrieve a previously saved signal via wait-signal tool",
+			async () => {
+				const { saveSignalTool, waitSignalTool, createMetadataTool } =
+					await setupTestServerWithTools();
+
+				// First, create metadata (required for waitSignal to work)
+				await createMetadataTool.handler!(
+					{
+						taskId: "integration-signal-test-456",
+						executionSteps: ["acceptance"],
+					},
+					{}
+				);
+
+				// Save a signal
+				const saveResult = await saveSignalTool.handler!(
+					{
+						taskId: "integration-signal-test-456",
+						signalType: "acceptance",
+						content: {
+							status: "passed",
+							summary: "Acceptance tests passed",
+						},
+					},
+					{}
+				);
+
+				const parsedSaveResult = JSON.parse(saveResult.content[0].text);
+				expect(parsedSaveResult.success).toBe(true);
+
+				// Now retrieve it via wait-signal (pollIntervalMs min is 100)
+				const waitResult = await waitSignalTool.handler!(
+					{
+						taskId: "integration-signal-test-456",
+						signalType: "acceptance",
+						timeoutMs: 1000,
+						pollIntervalMs: 100,
+					},
+					{}
+				);
+
+				const parsedWaitResult = JSON.parse(waitResult.content[0].text);
+				expect(parsedWaitResult.success).toBe(true);
+				// waitSignal returns content array, not signal
+				expect(parsedWaitResult.content).toBeDefined();
+				expect(parsedWaitResult.content[0].status).toBe("passed");
+				expect(parsedWaitResult.content[0].summary).toBe(
+					"Acceptance tests passed"
+				);
+			}
+		);
+	});
+
+	// ============================================================
+	// create-metadata Tool Registration
+	// ============================================================
+	describe("create-metadata tool registration", () => {
+		it.concurrent(
+			"should register create-metadata tool with the MCP server",
+			async () => {
+				const { registeredTools } = await setupTestServerWithTools();
+
+				expect(registeredTools).toBeDefined();
+				expect("create-metadata" in registeredTools).toBe(true);
+			}
+		);
+
+		it.concurrent(
+			"should register create-metadata tool with correct schema",
+			async () => {
+				const { createMetadataTool } = await setupTestServerWithTools();
+
+				expect(createMetadataTool).toBeDefined();
+				expect(createMetadataTool.description).toBeDefined();
+				expect(createMetadataTool.inputSchema).toBeDefined();
+			}
+		);
+
+		it.concurrent(
+			"should register create-metadata tool with required input fields (taskId, executionSteps)",
+			async () => {
+				const { createMetadataTool } = await setupTestServerWithTools();
+
+				expect(createMetadataTool).toBeDefined();
+				expect(createMetadataTool.inputSchema).toBeDefined();
+
+				const shape = extractSchemaShape(createMetadataTool.inputSchema);
+				if (shape) {
+					expect(shape).toHaveProperty("taskId");
+					expect(shape).toHaveProperty("executionSteps");
+				}
+			}
+		);
+	});
+
+	// ============================================================
+	// create-metadata Tool Invocation
+	// ============================================================
+	describe("create-metadata tool invocation", () => {
+		it.concurrent(
+			"should handle create-metadata tool call with valid input",
+			async () => {
+				const { createMetadataTool } = await setupTestServerWithTools();
+
+				expect(createMetadataTool).toBeDefined();
+				expect(createMetadataTool.handler).toBeDefined();
+
+				// Call the handler directly with valid input
+				const result = await createMetadataTool.handler!(
+					{
+						taskId: "test-metadata-task-123",
+						executionSteps: ["requirements", "plan", "implementation"],
+					},
+					{} // empty extra context
+				);
+
+				expect(result).toBeDefined();
+				expect(result.content).toBeDefined();
+				expect(result.content[0]).toHaveProperty("type", "text");
+
+				// Parse the result text as JSON to verify success
+				const resultData = JSON.parse(result.content[0].text);
+				expect(resultData.success).toBe(true);
+			}
+		);
+
+		it.concurrent(
+			"should handle create-metadata tool call with invalid input (empty taskId)",
+			async () => {
+				const { createMetadataTool } = await setupTestServerWithTools();
+
+				expect(createMetadataTool).toBeDefined();
+				expect(createMetadataTool.handler).toBeDefined();
+
+				// Call with invalid input (empty taskId)
+				const result = await createMetadataTool.handler!(
+					{
+						taskId: "",
+						executionSteps: ["requirements"],
+					},
+					{}
+				);
+
+				expect(result).toBeDefined();
+				expect(result.content).toBeDefined();
+
+				// Parse result - should have success: false with error
+				const resultData = JSON.parse(result.content[0].text);
+				expect(resultData.success).toBe(false);
+				expect(resultData.error).toBeDefined();
+			}
+		);
+
+		it.concurrent(
+			"should return proper MCP response format for create-metadata",
+			async () => {
+				const { createMetadataTool } = await setupTestServerWithTools();
+
+				const result = await createMetadataTool.handler!(
+					{
+						taskId: "metadata-task-id",
+						executionSteps: ["plan", "implementation"],
+					},
+					{}
+				);
+
+				// Verify MCP response format: { content: [{ type: "text", text: "..." }] }
+				expect(result).toHaveProperty("content");
+				expect(Array.isArray(result.content)).toBe(true);
+				expect(result.content.length).toBeGreaterThan(0);
+				expect(result.content[0]).toHaveProperty("type", "text");
+				expect(typeof result.content[0].text).toBe("string");
+			}
+		);
+	});
+
+	// ============================================================
+	// get-next-step Tool Registration
+	// ============================================================
+	describe("get-next-step tool registration", () => {
+		it.concurrent(
+			"should register get-next-step tool with the MCP server",
+			async () => {
+				const { registeredTools } = await setupTestServerWithTools();
+
+				expect(registeredTools).toBeDefined();
+				expect("get-next-step" in registeredTools).toBe(true);
+			}
+		);
+
+		it.concurrent(
+			"should register get-next-step tool with correct schema",
+			async () => {
+				const { getNextStepTool } = await setupTestServerWithTools();
+
+				expect(getNextStepTool).toBeDefined();
+				expect(getNextStepTool.description).toBeDefined();
+				expect(getNextStepTool.inputSchema).toBeDefined();
+			}
+		);
+
+		it.concurrent(
+			"should register get-next-step tool with required input field (taskId)",
+			async () => {
+				const { getNextStepTool } = await setupTestServerWithTools();
+
+				expect(getNextStepTool).toBeDefined();
+				expect(getNextStepTool.inputSchema).toBeDefined();
+
+				const shape = extractSchemaShape(getNextStepTool.inputSchema);
+				if (shape) {
+					expect(shape).toHaveProperty("taskId");
+					// get-next-step should NOT have executionSteps field (unlike create-metadata)
+					expect(shape).not.toHaveProperty("executionSteps");
+				}
+			}
+		);
+	});
+
+	// ============================================================
+	// get-next-step Tool Invocation
+	// ============================================================
+	describe("get-next-step tool invocation", () => {
+		it.concurrent(
+			"should handle get-next-step tool call with valid input (non-existent metadata)",
+			async () => {
+				const { getNextStepTool } = await setupTestServerWithTools();
+
+				expect(getNextStepTool).toBeDefined();
+				expect(getNextStepTool.handler).toBeDefined();
+
+				// Call the handler with valid input for non-existent metadata
+				const result = await getNextStepTool.handler!(
+					{
+						taskId: "non-existent-metadata-task-123",
+					},
+					{} // empty extra context
+				);
+
+				expect(result).toBeDefined();
+				expect(result.content).toBeDefined();
+				expect(result.content[0]).toHaveProperty("type", "text");
+
+				// Parse the result text as JSON - should fail since metadata does not exist
+				const resultData = JSON.parse(result.content[0].text);
+				expect(resultData.success).toBe(false);
+				expect(resultData.error).toBeDefined();
+			}
+		);
+
+		it.concurrent(
+			"should handle get-next-step tool call with invalid input (empty taskId)",
+			async () => {
+				const { getNextStepTool } = await setupTestServerWithTools();
+
+				expect(getNextStepTool).toBeDefined();
+				expect(getNextStepTool.handler).toBeDefined();
+
+				// Call with invalid input (empty taskId)
+				const result = await getNextStepTool.handler!(
+					{
+						taskId: "",
+					},
+					{}
+				);
+
+				expect(result).toBeDefined();
+				expect(result.content).toBeDefined();
+
+				// Parse result - should have success: false with error
+				const resultData = JSON.parse(result.content[0].text);
+				expect(resultData.success).toBe(false);
+				expect(resultData.error).toBeDefined();
+			}
+		);
+
+		it.concurrent(
+			"should return proper MCP response format for get-next-step",
+			async () => {
+				const { getNextStepTool } = await setupTestServerWithTools();
+
+				const result = await getNextStepTool.handler!(
+					{
+						taskId: "get-next-step-task-id",
+					},
+					{}
+				);
+
+				// Verify MCP response format: { content: [{ type: "text", text: "..." }] }
+				expect(result).toHaveProperty("content");
+				expect(Array.isArray(result.content)).toBe(true);
+				expect(result.content.length).toBeGreaterThan(0);
+				expect(result.content[0]).toHaveProperty("type", "text");
+				expect(typeof result.content[0].text).toBe("string");
+			}
+		);
+	});
+
+	// ============================================================
+	// get-next-step Integration with create-metadata
+	// ============================================================
+	describe("get-next-step integration with create-metadata", () => {
+		it.concurrent(
+			"should retrieve first step from previously created metadata via get-next-step tool",
+			async () => {
+				const { createMetadataTool, getNextStepTool } =
+					await setupTestServerWithTools();
+
+				// First, create metadata
+				const createResult = await createMetadataTool.handler!(
+					{
+						taskId: "integration-metadata-test-456",
+						executionSteps: ["requirements", "plan", "implementation"],
+					},
+					{}
+				);
+
+				const parsedCreateResult = JSON.parse(createResult.content[0].text);
+				expect(parsedCreateResult.success).toBe(true);
+
+				// Now retrieve next step via get-next-step
+				const getResult = await getNextStepTool.handler!(
+					{
+						taskId: "integration-metadata-test-456",
+					},
+					{}
+				);
+
+				const parsedGetResult = JSON.parse(getResult.content[0].text);
+				expect(parsedGetResult.success).toBe(true);
+				expect(parsedGetResult.step).toBe("requirements");
+			}
+		);
+
+		it.concurrent(
+			"should return same step on consecutive calls (step only advances via waitSignal)",
+			async () => {
+				const { createMetadataTool, getNextStepTool } =
+					await setupTestServerWithTools();
+
+				// Create metadata with multiple steps
+				await createMetadataTool.handler!(
+					{
+						taskId: "integration-step-same-test",
+						executionSteps: ["requirements", "plan", "implementation"],
+					},
+					{}
+				);
+
+				// First call - should return "requirements"
+				const firstResult = await getNextStepTool.handler!(
+					{
+						taskId: "integration-step-same-test",
+					},
+					{}
+				);
+				const parsedFirstResult = JSON.parse(firstResult.content[0].text);
+				expect(parsedFirstResult.step).toBe("requirements");
+				expect(parsedFirstResult.stepNumber).toBe(1);
+				expect(parsedFirstResult.totalSteps).toBe(3);
+
+				// Second call - should still return "requirements" (step doesn't advance without signals)
+				const secondResult = await getNextStepTool.handler!(
+					{
+						taskId: "integration-step-same-test",
+					},
+					{}
+				);
+				const parsedSecondResult = JSON.parse(secondResult.content[0].text);
+				expect(parsedSecondResult.step).toBe("requirements");
+				expect(parsedSecondResult.stepNumber).toBe(1);
+			}
+		);
+	});
 });

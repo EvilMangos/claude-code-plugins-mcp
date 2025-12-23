@@ -40,7 +40,7 @@ The server uses stdio transport for MCP communication:
 - **Tool registration**: `src/tools/register.ts` - Registers MCP tools with Zod schemas
 - **Common schemas**: `src/schemas/` - Shared Zod validation schemas (e.g., `shared.schema.ts` with `taskIdSchema`)
 - **Common types**: `src/types/` - Shared types and constants (e.g., `report.type.ts` exports `REPORT_TYPES` constant and `ReportType` type)
-- **Utilities**: `src/utils/` - Shared helper functions (e.g., `format-zod.error.ts`, `format-storage.error.ts`)
+- **Utilities**: `src/utils/` - Shared helper functions (e.g., `format-zod.error.ts`, `format-repository.error.ts`)
 - **Container**: `src/container/` - Inversify dependency injection setup
 
 ### Storage Module (`src/storage/`)
@@ -56,7 +56,7 @@ Report-related functionality for storing and retrieving workflow reports:
 - **Schemas**: `src/report/schemas/` - Zod schemas for save-report and get-report
 - **Types**: `src/report/types/` - Report interfaces (storage, service, stored-report, result types)
 - **Storage**: `src/report/repository/report.repository.ts` - SQLite storage with `save(taskId, reportType, content)`, `get()`, `clear()`. Auto-generates timestamps. Uses composite primary key `(task_id, report_type)` with `INSERT OR REPLACE` for upsert.
-- **Service**: `src/report/metadata.report.signal.service.ts` - Business logic for report operations
+- **Service**: `src/report/report.service.ts` - Business logic for report operations
 
 ### Signal Module (`src/signal/`)
 
@@ -65,7 +65,7 @@ Signal-related functionality for storing and retrieving workflow signals with st
 - **Schemas**: `src/signal/schemas/` - Zod schemas for save-signal and get-signal
 - **Types**: `src/signal/types/` - Signal interfaces and `signal-status.type.ts` (SIGNAL_STATUSES: passed/failed)
 - **Storage**: `src/signal/repository/signal.repository.ts` - SQLite storage with `save(taskId, signalType, content)`, `get()`, `clear()`. Auto-generates timestamps. SignalContent is JSON-serialized. Uses composite primary key `(task_id, signal_type)`.
-- **Service**: `src/signal/metadata.report.signal.service.ts` - Business logic for signal operations (saveSignal, waitSignal)
+- **Service**: `src/signal/signal.service.ts` - Business logic for signal operations (saveSignal, waitSignal)
 
 ### Metadata Module (`src/metadata/`)
 
@@ -74,7 +74,7 @@ Metadata-related functionality for storing workflow execution state:
 - **Schemas**: `src/metadata/schemas/` - Zod schemas for create-metadata and get-next-step
 - **Types**: `src/metadata/types/` - Metadata interfaces (storage, service, stored-metadata, result types)
 - **Storage**: `src/metadata/repository/metadata.repository.ts` - SQLite storage with `create(taskId, executionSteps)`, `get()`, `exists()`, `incrementStep()`, `decrementStep()`, `clear()`. Auto-generates timestamps. ExecutionSteps array is JSON-serialized. Uses primary key `task_id`.
-- **Service**: `src/metadata/metadata.report.signal.service.ts` - Business logic for metadata operations (createMetadata, getNextStep)
+- **Service**: `src/metadata/metadata.service.ts` - Business logic for metadata operations (createMetadata, getNextStep)
 
 The `reportType`/`signalType` must be one of the 12 valid workflow steps defined in `REPORT_TYPES`.
 
@@ -111,25 +111,24 @@ Husky runs on commit: `pnpm run format` → `pnpm run lint:fix` → `git add -u`
 
 Example of Good grouping in a single file:
 ```typescript
-export const REPORT_TYPES = [
-	"requirements",
-	"plan",
-	"tests-design",
-	"tests-review",
-	"implementation",
-	"stabilization",
-	"acceptance",
-	"performance",
-	"security",
-	"refactoring",
-	"code-review",
-	"documentation",
-] as const;
+export const ReportType = {
+	REQUIREMENTS: "requirements",
+	PLAN: "plan",
+	TESTS_DESIGN: "tests-design",
+	TESTS_REVIEW: "tests-review",
+	IMPLEMENTATION: "implementation",
+	STABILIZATION: "stabilization",
+	ACCEPTANCE: "acceptance",
+	PERFORMANCE: "performance",
+	SECURITY: "security",
+	REFACTORING: "refactoring",
+	CODE_REVIEW: "code-review",
+	DOCUMENTATION: "documentation",
+} as const;
 
-/**
- * Type derived from REPORT_TYPES constant.
- */
-export type ReportType = (typeof REPORT_TYPES)[number];
+export type ReportType = (typeof ReportType)[keyof typeof ReportType];
+
+export const REPORT_TYPES = Object.values(ReportType);
 ```
 
 The reason why these elements should be kept together is because they are related very much, and they are too small to keep them separately.
