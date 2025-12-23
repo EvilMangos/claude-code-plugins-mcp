@@ -1,13 +1,31 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { TOKENS, container } from "../container";
-import { createMetadataSchema } from "../metadata/schemas/create-metadata.schema";
-import { getNextStepSchema } from "../metadata/schemas/get-next-step.schema";
+import {
+	CreateMetadataInput,
+	createMetadataSchema,
+} from "../metadata/schemas/create-metadata.schema";
+import {
+	GetNextStepInput,
+	getNextStepSchema,
+} from "../metadata/schemas/get-next-step.schema";
 import type { IMetadataService } from "../metadata/types/metadata-service.interface";
-import { getReportSchema } from "../report/schemas/get-report.schema";
-import { saveReportSchema } from "../report/schemas/save-report.schema";
+import {
+	GetReportInput,
+	getReportSchema,
+} from "../report/schemas/get-report.schema";
+import {
+	SaveReportInput,
+	saveReportSchema,
+} from "../report/schemas/save-report.schema";
 import type { IReportService } from "../report/types/report-service.interface";
-import { saveSignalSchema } from "../signal/schemas/save-signal.schema";
-import { waitSignalSchema } from "../signal/schemas/wait-signal.schema";
+import {
+	SaveSignalInput,
+	saveSignalSchema,
+} from "../signal/schemas/save-signal.schema";
+import {
+	WaitSignalInput,
+	waitSignalSchema,
+} from "../signal/schemas/wait-signal.schema";
 import type { ISignalService } from "../signal/types/signal-service.interface";
 
 /**
@@ -27,7 +45,7 @@ export function registerTools(server: McpServer): void {
 			description: "Save a workflow report",
 			inputSchema: saveReportSchema.shape,
 		},
-		async (input) => {
+		async (input: SaveReportInput) => {
 			const result = await reportService.saveReport(input);
 			return { content: [{ type: "text", text: JSON.stringify(result) }] };
 		}
@@ -39,7 +57,7 @@ export function registerTools(server: McpServer): void {
 			description: "Get a workflow report",
 			inputSchema: getReportSchema.shape,
 		},
-		async (input) => {
+		async (input: GetReportInput) => {
 			const result = await reportService.getReport(input);
 			return { content: [{ type: "text", text: JSON.stringify(result) }] };
 		}
@@ -51,7 +69,7 @@ export function registerTools(server: McpServer): void {
 			description: "Save a workflow signal with status and summary",
 			inputSchema: saveSignalSchema.shape,
 		},
-		async (input) => {
+		async (input: SaveSignalInput) => {
 			const result = await signalService.saveSignal(input);
 			return { content: [{ type: "text", text: JSON.stringify(result) }] };
 		}
@@ -64,7 +82,7 @@ export function registerTools(server: McpServer): void {
 				"Wait for a workflow signal to appear. Polls until the signal is found or timeout is reached.",
 			inputSchema: waitSignalSchema.shape,
 		},
-		async (input) => {
+		async (input: WaitSignalInput) => {
 			const result = await signalService.waitSignal(input);
 			return { content: [{ type: "text", text: JSON.stringify(result) }] };
 		}
@@ -76,7 +94,7 @@ export function registerTools(server: McpServer): void {
 			description: "Create task lifecycle metadata with execution steps",
 			inputSchema: createMetadataSchema.shape,
 		},
-		async (input) => {
+		async (input: CreateMetadataInput) => {
 			const result = await metadataService.createMetadata(input);
 			return { content: [{ type: "text", text: JSON.stringify(result) }] };
 		}
@@ -88,7 +106,7 @@ export function registerTools(server: McpServer): void {
 			description: "Get the next workflow step for a task",
 			inputSchema: getNextStepSchema.shape,
 		},
-		async (input) => {
+		async (input: GetNextStepInput) => {
 			const result = await metadataService.getNextStep(input);
 			return { content: [{ type: "text", text: JSON.stringify(result) }] };
 		}

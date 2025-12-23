@@ -1,7 +1,6 @@
 import { z } from "zod";
 
-import { taskIdSchema } from "../../schemas/shared.schema.js";
-import { REPORT_TYPES } from "../../types/report.type.js";
+import { executionStepSchema, taskIdSchema } from "../../schemas/shared.schema";
 
 /**
  * Schema for create-metadata input validation.
@@ -9,10 +8,10 @@ import { REPORT_TYPES } from "../../types/report.type.js";
 export const createMetadataSchema = z.object({
 	taskId: taskIdSchema.describe("Unique identifier for the workflow task"),
 	executionSteps: z
-		.array(z.enum(REPORT_TYPES))
+		.array(executionStepSchema)
 		.min(1)
 		.describe(
-			"Ordered list of workflow steps to execute. Should keep correct order of steps without setup step"
+			"Ordered list of workflow steps to execute. Use arrays for parallel steps: ['plan', ['performance', 'security'], 'refactoring']"
 		),
 });
 

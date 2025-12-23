@@ -13,7 +13,7 @@ export interface IWaitSignalResult {
 	 * The signal content if found within the timeout period.
 	 * Undefined if the operation failed or timed out.
 	 */
-	content?: SignalContent;
+	content?: SignalContent[];
 
 	/**
 	 * How long the operation waited in milliseconds before the signal was found.

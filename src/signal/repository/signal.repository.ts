@@ -4,7 +4,7 @@ import type { ReportType } from "../../types/report.type";
 import type { ISignalRepository } from "../types/signal-repository.interface";
 import type { ISignalStorage } from "../types/signal-storage.interface";
 import type { IStoredSignal } from "../types/stored-signal.interface";
-import type { SignalContent } from "../schemas/save-signal.schema";
+import { SignalContent } from "../schemas/signal-content.schema";
 
 /**
  * Repository for managing workflow signals.

@@ -1,20 +1,20 @@
 import { inject, injectable } from "inversify";
 
 import { TOKENS } from "../container";
-import { formatStorageError } from "../utils/format-storage.error.js";
-import { formatZodError } from "../utils/format-zod.error.js";
+import { formatStorageError } from "../utils/format-storage.error";
+import { formatZodError } from "../utils/format-zod.error";
 import {
 	type CreateMetadataInput,
 	createMetadataSchema,
-} from "./schemas/create-metadata.schema.js";
+} from "./schemas/create-metadata.schema";
 import {
 	type GetNextStepInput,
 	getNextStepSchema,
-} from "./schemas/get-next-step.schema.js";
-import type { ICreateMetadataResult } from "./types/create-metadata-result.interface.js";
-import type { IGetNextStepResult } from "./types/get-next-step-result.interface.js";
-import type { IMetadataRepository } from "./types/metadata-repository.interface.js";
-import type { IMetadataService } from "./types/metadata-service.interface.js";
+} from "./schemas/get-next-step.schema";
+import type { ICreateMetadataResult } from "./types/create-metadata-result.interface";
+import type { IGetNextStepResult } from "./types/get-next-step-result.interface";
+import type { IMetadataRepository } from "./types/metadata-repository.interface";
+import type { IMetadataService } from "./types/metadata-service.interface";
 
 /**
  * Service for managing task metadata.
@@ -100,13 +100,5 @@ export class MetadataServiceImpl implements IMetadataService {
 				error: formatStorageError(error),
 			};
 		}
-	}
-
-	/**
-	 * Check if metadata exists for a taskId.
-	 * Used for fail-fast validation in waitSignal.
-	 */
-	taskExists(taskId: string): boolean {
-		return this.repository.exists(taskId);
 	}
 }

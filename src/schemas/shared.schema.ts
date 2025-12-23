@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { REPORT_TYPES } from "../types/report.type";
 
 /**
  * Reusable taskId field schema with validation.
@@ -11,3 +12,10 @@ export const taskIdSchema = z
 		message: "taskId cannot be whitespace only",
 	})
 	.describe("Unique identifier for the workflow task");
+
+const singleStepSchema = z.enum(REPORT_TYPES);
+const parallelGroupSchema = z.array(z.enum(REPORT_TYPES)).min(2);
+export const executionStepSchema = z.union([
+	singleStepSchema,
+	parallelGroupSchema,
+]);

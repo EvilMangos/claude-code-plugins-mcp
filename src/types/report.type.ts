@@ -1,22 +1,28 @@
 /**
- * Valid report types corresponding to workflow steps.
+ * Enum-like object for report types corresponding to workflow steps.
  */
-export const REPORT_TYPES = [
-	"requirements",
-	"plan",
-	"tests-design",
-	"tests-review",
-	"implementation",
-	"stabilization",
-	"acceptance",
-	"performance",
-	"security",
-	"refactoring",
-	"code-review",
-	"documentation",
-] as const;
+export const ReportType = {
+	REQUIREMENTS: "requirements",
+	PLAN: "plan",
+	TESTS_DESIGN: "tests-design",
+	TESTS_REVIEW: "tests-review",
+	IMPLEMENTATION: "implementation",
+	STABILIZATION: "stabilization",
+	ACCEPTANCE: "acceptance",
+	PERFORMANCE: "performance",
+	SECURITY: "security",
+	REFACTORING: "refactoring",
+	CODE_REVIEW: "code-review",
+	DOCUMENTATION: "documentation",
+} as const;
 
 /**
- * Type derived from REPORT_TYPES constant.
+ * Type derived from ReportType object values.
  */
-export type ReportType = (typeof REPORT_TYPES)[number];
+// eslint-disable-next-line no-redeclare
+export type ReportType = (typeof ReportType)[keyof typeof ReportType];
+
+/**
+ * Array of valid report types (derived from ReportType object).
+ */
+export const REPORT_TYPES = Object.values(ReportType);

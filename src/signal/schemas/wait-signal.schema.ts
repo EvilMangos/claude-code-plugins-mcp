@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { REPORT_TYPES } from "../../types/report.type";
-import { taskIdSchema } from "../../schemas/shared.schema";
+import { executionStepSchema, taskIdSchema } from "../../schemas/shared.schema";
 import {
 	DEFAULT_POLL_INTERVAL_MS,
 	DEFAULT_TIMEOUT_MS,
@@ -11,11 +10,9 @@ import {
  */
 export const waitSignalSchema = z.object({
 	taskId: taskIdSchema,
-	signalType: z
-		.enum(REPORT_TYPES, {
-			message: "signalType must be a valid workflow step",
-		})
-		.describe("Workflow step to wait for"),
+	signalType: executionStepSchema.describe(
+		"Workflow step or steps to wait for"
+	),
 	timeoutMs: z
 		.number()
 		.int()

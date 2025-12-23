@@ -1,9 +1,18 @@
 /**
- * Valid signal statuses.
+ * Enum-like object for signal statuses.
  */
-export const SIGNAL_STATUSES = ["passed", "failed"] as const;
+export const SignalStatus = {
+	PASSED: "passed",
+	FAILED: "failed",
+} as const;
 
 /**
- * Type derived from SIGNAL_STATUSES constant.
+ * Type derived from SignalStatus object values.
  */
-export type SignalStatus = (typeof SIGNAL_STATUSES)[number];
+// eslint-disable-next-line no-redeclare
+export type SignalStatus = (typeof SignalStatus)[keyof typeof SignalStatus];
+
+/**
+ * Array of valid signal statuses (derived from SignalStatus object).
+ */
+export const SIGNAL_STATUSES = Object.values(SignalStatus);

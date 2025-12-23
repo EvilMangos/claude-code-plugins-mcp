@@ -1,4 +1,4 @@
-import type { IStoredMetadata } from "./stored-metadata.interface.js";
+import type { IStoredMetadata } from "./stored-metadata.interface";
 
 /**
  * Storage layer interface for metadata.

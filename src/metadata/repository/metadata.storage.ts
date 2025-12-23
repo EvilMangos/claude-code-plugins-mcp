@@ -1,7 +1,7 @@
 import { injectable } from "inversify";
 
-import type { IMetadataStorage } from "../types/metadata-storage.interface.js";
-import type { IStoredMetadata } from "../types/stored-metadata.interface.js";
+import type { IMetadataStorage } from "../types/metadata-storage.interface";
+import type { IStoredMetadata } from "../types/stored-metadata.interface";
 
 /**
  * In-memory storage for task metadata.

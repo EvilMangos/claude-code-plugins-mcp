@@ -1,10 +1,10 @@
 import { inject, injectable } from "inversify";
 
 import { TOKENS } from "../../container";
-import type { ReportType } from "../../types/report.type.js";
-import type { IMetadataRepository } from "../types/metadata-repository.interface.js";
-import type { IMetadataStorage } from "../types/metadata-storage.interface.js";
-import type { IStoredMetadata } from "../types/stored-metadata.interface.js";
+import type { IMetadataRepository } from "../types/metadata-repository.interface";
+import type { IMetadataStorage } from "../types/metadata-storage.interface";
+import type { IStoredMetadata } from "../types/stored-metadata.interface";
+import { ExecutionStep } from "../../types/execution-step.type";
 
 /**
  * Repository for managing task metadata.
@@ -21,7 +21,7 @@ export class MetadataRepositoryImpl implements IMetadataRepository {
 	 * Create metadata for a new task.
 	 * Sets startedAt, initializes currentStepIndex to 0.
 	 */
-	create(taskId: string, executionSteps: ReportType[]): void {
+	create(taskId: string, executionSteps: ExecutionStep[]): void {
 		const now = new Date().toISOString();
 
 		const storedMetadata: IStoredMetadata = {
@@ -40,13 +40,6 @@ export class MetadataRepositoryImpl implements IMetadataRepository {
 	 */
 	get(taskId: string): IStoredMetadata | undefined {
 		return this.storage.get(taskId);
-	}
-
-	/**
-	 * Check if metadata exists for a taskId.
-	 */
-	exists(taskId: string): boolean {
-		return this.storage.exists(taskId);
 	}
 
 	/**

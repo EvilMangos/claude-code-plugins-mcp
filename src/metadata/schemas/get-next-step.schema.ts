@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { taskIdSchema } from "../../schemas/shared.schema.js";
+import { taskIdSchema } from "../../schemas/shared.schema";
 
 /**
  * Schema for get-next-step input validation.

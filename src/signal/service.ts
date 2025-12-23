@@ -15,6 +15,9 @@ import type { ISaveSignalResult } from "./types/save-signal-result.interface";
 import type { ISignalRepository } from "./types/signal-repository.interface";
 import type { ISignalService } from "./types/signal-service.interface";
 import type { IWaitSignalResult } from "./types/wait-signal-result.interface";
+import { ReportType } from "../types/report.type";
+import { SignalContent } from "./schemas/signal-content.schema";
+import { SignalStatus } from "./types/signal-status.type";
 
 /**
  * Service for managing workflow signals.
@@ -31,6 +34,9 @@ export class SignalServiceImpl implements ISignalService {
 
 	/**
 	 * Save a workflow signal to in-memory storage.
+	 * Does NOT update metadata step - step progression is handled by waitSignal
+	 * to properly support parallel steps (increment once after ALL signals received).
+	 *
 	 * @param input - The signal input containing taskId, signalType, and content
 	 * @returns A result object with success status and optional error message
 	 */
@@ -55,13 +61,6 @@ export class SignalServiceImpl implements ISignalService {
 				validatedInput.content
 			);
 
-			// Update metadata step based on signal status
-			if (validatedInput.content.status === "passed") {
-				this.metadataRepository.incrementStep(validatedInput.taskId);
-			} else {
-				this.metadataRepository.decrementStep(validatedInput.taskId);
-			}
-
 			return { success: true };
 		} catch (error) {
 			return {
@@ -72,11 +71,14 @@ export class SignalServiceImpl implements ISignalService {
 	}
 
 	/**
-	 * Wait for a workflow signal to appear in storage.
-	 * Polls the storage at regular intervals until the signal is found or timeout is reached.
-	 * @param input - The signal input containing taskId, signalType, and optional timeout/polling settings
-	 * @returns A result object with success status, signal content if found, wait time, or error message
+	 * Wait for one or more workflow signals to appear in storage.
+	 * Polls the storage at regular intervals until **all** requested signals are found or the timeout is reached.
+	 * When multiple signal types are provided, it returns combined content in the same order as requested.
+	 *
+	 * @param input - The signal input containing taskId, signalType (single or array), and optional timeout/polling settings
+	 * @returns A result object with success status, combined signal content if all are found, wait time, or error message
 	 */
+
 	async waitSignal(input: WaitSignalInput): Promise<IWaitSignalResult> {
 		// Validate input
 		const parseResult = waitSignalSchema.safeParse(input);
@@ -91,29 +93,63 @@ export class SignalServiceImpl implements ISignalService {
 		const validatedInput = parseResult.data;
 		const { taskId, signalType, timeoutMs, pollIntervalMs } = validatedInput;
 
+		// Normalize + de-duplicate (preserve order)
+		const signalTypes: ReportType[] = Array.from(
+			new Set(Array.isArray(signalType) ? signalType : [signalType])
+		);
+
 		const startTime = Date.now();
 
 		try {
-			// Poll until signal is found or timeout
-			while (Date.now() - startTime < timeoutMs) {
-				const signal = this.repository.get(taskId, signalType);
+			// Keep track of signals we already have
+			const found = new Map<ReportType, { content: SignalContent }>();
 
-				if (signal) {
+			// Poll until ALL signals are found or timeout
+			while (Date.now() - startTime < timeoutMs) {
+				for (const type of signalTypes) {
+					if (found.has(type)) continue;
+
+					const signal = this.repository.get(taskId, type);
+
+					if (signal) {
+						found.set(type, { content: signal.content });
+					}
+				}
+
+				if (found.size === signalTypes.length) {
+					const content: SignalContent[] = signalTypes
+						.map((signalType) => found.get(signalType)?.content)
+						.filter((value) => !!value);
+
+					// Update metadata step based on aggregated signal statuses
+					// This handles parallel steps correctly: increment/decrement once after ALL signals received
+					const allPassed = content.every(
+						(c) => c.status === SignalStatus.PASSED
+					);
+					if (allPassed) {
+						this.metadataRepository.incrementStep(taskId);
+					} else {
+						// At least one signal failed - go back to retry
+						this.metadataRepository.decrementStep(taskId);
+					}
+
 					return {
 						success: true,
-						content: signal.content,
+						content,
 						waitedMs: Date.now() - startTime,
 					};
 				}
 
-				// Wait before next poll
 				await this.sleep(pollIntervalMs);
 			}
 
 			// Timeout reached
+			const missing = signalTypes.filter((t) => !found.has(t));
 			return {
 				success: false,
-				error: `Timeout after ${timeoutMs}ms waiting for signal '${signalType}' (taskId: ${taskId})`,
+				error: `Timeout after ${timeoutMs}ms waiting for signals [${missing.join(
+					", "
+				)}] (taskId: ${taskId})`,
 				waitedMs: Date.now() - startTime,
 			};
 		} catch (error) {

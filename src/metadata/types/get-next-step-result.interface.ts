@@ -1,4 +1,4 @@
-import type { ReportType } from "../../types/report.type.js";
+import { ExecutionStep } from "../../types/execution-step.type";
 
 /**
  * Result of getting the next step.
@@ -8,7 +8,7 @@ export interface IGetNextStepResult {
 	taskId?: string;
 	stepNumber?: number;
 	totalSteps?: number;
-	step?: ReportType;
+	step?: ExecutionStep;
 	complete?: boolean;
 	error?: string;
 }
