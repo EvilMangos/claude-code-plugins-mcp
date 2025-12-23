@@ -8,7 +8,7 @@ import {
 	GetNextStepInput,
 	getNextStepSchema,
 } from "../metadata/schemas/get-next-step.schema";
-import type { IMetadataService } from "../metadata/types/metadata-service.interface";
+import type { IMetadataService } from "../metadata/types/metadata.service.interface";
 import {
 	GetReportInput,
 	getReportSchema,
@@ -17,7 +17,7 @@ import {
 	SaveReportInput,
 	saveReportSchema,
 } from "../report/schemas/save-report.schema";
-import type { IReportService } from "../report/types/report-service.interface";
+import type { IReportService } from "../report/types/report.service.interface";
 import {
 	SaveSignalInput,
 	saveSignalSchema,
@@ -26,7 +26,7 @@ import {
 	WaitSignalInput,
 	waitSignalSchema,
 } from "../signal/schemas/wait-signal.schema";
-import type { ISignalService } from "../signal/types/signal-service.interface";
+import type { ISignalService } from "../signal/types/signal.service.interface";
 
 /**
  * Register all MCP tools with the server.

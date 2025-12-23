@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 
 import { TOKENS } from "../container";
-import { formatStorageError } from "../utils/format-storage.error";
+import { formatRepositoryError } from "../utils/format-repository.error";
 import { formatZodError } from "../utils/format-zod.error";
 import {
 	type CreateMetadataInput,
@@ -13,15 +13,15 @@ import {
 } from "./schemas/get-next-step.schema";
 import type { ICreateMetadataResult } from "./types/create-metadata-result.interface";
 import type { IGetNextStepResult } from "./types/get-next-step-result.interface";
-import type { IMetadataRepository } from "./types/metadata-repository.interface";
-import type { IMetadataService } from "./types/metadata-service.interface";
+import type { IMetadataRepository } from "./types/metadata.repository.interface";
+import type { IMetadataService } from "./types/metadata.service.interface";
 
 /**
  * Service for managing task metadata.
  * Provides methods to create and retrieve task lifecycle information.
  */
 @injectable()
-export class MetadataServiceImpl implements IMetadataService {
+export class MetadataService implements IMetadataService {
 	constructor(
 		@inject(TOKENS.MetadataRepository)
 		private readonly repository: IMetadataRepository
@@ -53,7 +53,7 @@ export class MetadataServiceImpl implements IMetadataService {
 		} catch (error) {
 			return {
 				success: false,
-				error: formatStorageError(error),
+				error: formatRepositoryError(error),
 			};
 		}
 	}
@@ -97,7 +97,7 @@ export class MetadataServiceImpl implements IMetadataService {
 		} catch (error) {
 			return {
 				success: false,
-				error: formatStorageError(error),
+				error: formatRepositoryError(error),
 			};
 		}
 	}

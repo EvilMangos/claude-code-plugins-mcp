@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReportType } from "../../types/report.type";
-import { MetadataServiceImpl } from "../service";
-import type { IMetadataRepository } from "../types/metadata-repository.interface";
+import { MetadataService } from "../metadata.service";
 import type { IStoredMetadata } from "../types/stored-metadata.interface";
+import { IMetadataRepository } from "../types/metadata.repository.interface";
 
 // Create mock repository
 const mockRepository: IMetadataRepository = {
@@ -15,7 +15,7 @@ const mockRepository: IMetadataRepository = {
 };
 
 // Create service with mock repository
-const metadataService = new MetadataServiceImpl(mockRepository);
+const metadataService = new MetadataService(mockRepository);
 
 describe("MetadataService.getNextStep", () => {
 	beforeEach(() => {
@@ -190,14 +190,14 @@ describe("MetadataService.getNextStep", () => {
 
 		it("should handle repository errors gracefully", async () => {
 			vi.mocked(mockRepository.get).mockImplementation(() => {
-				throw new Error("Storage failure");
+				throw new Error("Repository failure");
 			});
 
 			const result = await metadataService.getNextStep({ taskId: "task-123" });
 
 			expect(result).toEqual({
 				success: false,
-				error: expect.stringContaining("Storage failure"),
+				error: expect.stringContaining("Repository failure"),
 			});
 		});
 	});

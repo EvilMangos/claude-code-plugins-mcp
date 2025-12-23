@@ -1,10 +1,10 @@
 import { inject, injectable } from "inversify";
 import { TOKENS } from "../container";
 import type { IGetReportResult } from "./types/get-report-result.interface";
-import type { IReportRepository } from "./types/report-repository.interface";
-import type { IReportService } from "./types/report-service.interface";
+import type { IReportRepository } from "./types/report.repository.interface";
+import type { IReportService } from "./types/report.service.interface";
 import type { ISaveReportResult } from "./types/save-report-result.interface";
-import { formatStorageError } from "../utils/format-storage.error";
+import { formatRepositoryError } from "../utils/format-repository.error";
 import { formatZodError } from "../utils/format-zod.error";
 import { GetReportInput, getReportSchema } from "./schemas/get-report.schema";
 import {
@@ -14,17 +14,17 @@ import {
 
 /**
  * Service for managing workflow reports.
- * Provides methods to save and retrieve reports from report-repository.
+ * Provides methods to save and retrieve reports from repository.
  */
 @injectable()
-export class ReportServiceImpl implements IReportService {
+export class ReportService implements IReportService {
 	constructor(
 		@inject(TOKENS.ReportRepository)
 		private readonly repository: IReportRepository
 	) {}
 
 	/**
-	 * Save a workflow report to in-memory report-repository.
+	 * Save a workflow report to repository.
 	 * @param input - The report input containing taskId, reportType, and content
 	 * @returns A result object with success status and optional error message
 	 */
@@ -53,13 +53,13 @@ export class ReportServiceImpl implements IReportService {
 		} catch (error) {
 			return {
 				success: false,
-				error: formatStorageError(error),
+				error: formatRepositoryError(error),
 			};
 		}
 	}
 
 	/**
-	 * Get a workflow report from in-memory report-repository.
+	 * Get a workflow report from repository.
 	 * @param input - The report input containing taskId and reportType
 	 * @returns A result object with success status and optional report or error message
 	 */
@@ -92,7 +92,7 @@ export class ReportServiceImpl implements IReportService {
 		} catch (error) {
 			return {
 				success: false,
-				error: formatStorageError(error),
+				error: formatRepositoryError(error),
 			};
 		}
 	}

@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ReportServiceImpl } from "../service";
-import type { IReportRepository } from "../types/report-repository.interface";
+import { ReportService } from "../report.service";
 import { ReportType } from "../../types/report.type";
 import { GetReportInput } from "../schemas/get-report.schema";
 import type { IStoredReport } from "../types/stored-report.interface";
+import { IReportRepository } from "../types/report.repository.interface";
 
 /**
  * Test-only type that allows any string for reportType to test validation.
@@ -20,7 +20,7 @@ const mockRepository: IReportRepository = {
 };
 
 // Create service with mock repository
-const reportService = new ReportServiceImpl(mockRepository);
+const reportService = new ReportService(mockRepository);
 
 describe("ReportService.getReport", () => {
 	beforeEach(() => {
@@ -333,7 +333,7 @@ describe("ReportService.getReport", () => {
 			"should handle repository exceptions gracefully",
 			async () => {
 				vi.mocked(mockRepository.get).mockImplementationOnce(() => {
-					throw new Error("Storage failure");
+					throw new Error("Repository failure");
 				});
 
 				const input: GetReportInput = {
@@ -345,7 +345,7 @@ describe("ReportService.getReport", () => {
 
 				expect(result).toEqual({
 					success: false,
-					error: expect.stringContaining("Storage failure"),
+					error: expect.stringContaining("Repository failure"),
 				});
 			}
 		);

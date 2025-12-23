@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { IMetadataRepository } from "../../metadata/types/metadata-repository.interface";
 import { ReportType } from "../../types/report.type";
 import { SaveSignalInput } from "../schemas/save-signal.schema";
-import { SignalServiceImpl } from "../service";
-import type { ISignalRepository } from "../types/signal-repository.interface";
+import { SignalService } from "../signal.service";
 import { SIGNAL_STATUSES, SignalStatus } from "../types/signal-status.type";
+import { ISignalRepository } from "../types/signal.repository.interface";
+import { IMetadataRepository } from "../../metadata/types/metadata.repository.interface";
 
 /**
  * Test-only type that allows any string for signalType to test validation.
@@ -28,17 +28,13 @@ const mockRepository: ISignalRepository = {
 const mockMetadataRepository: IMetadataRepository = {
 	create: vi.fn(),
 	get: vi.fn(),
-	exists: vi.fn(),
 	incrementStep: vi.fn(),
 	decrementStep: vi.fn(),
 	clear: vi.fn(),
 };
 
 // Create service with mock repositories
-const signalService = new SignalServiceImpl(
-	mockRepository,
-	mockMetadataRepository
-);
+const signalService = new SignalService(mockRepository, mockMetadataRepository);
 
 describe("SignalService.saveSignal", () => {
 	beforeEach(() => {

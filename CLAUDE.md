@@ -43,16 +43,20 @@ The server uses stdio transport for MCP communication:
 - **Utilities**: `src/utils/` - Shared helper functions (e.g., `format-zod.error.ts`, `format-storage.error.ts`)
 - **Container**: `src/container/` - Inversify dependency injection setup
 
+### Storage Module (`src/storage/`)
+
+Shared SQLite database infrastructure:
+
+- **SqliteDatabase**: `sqlite-database.ts` - Core database manager with lazy initialization using `better-sqlite3`. Creates tables for reports, signals, and metadata on first access. Defaults to `mcp-storage.db` in CWD; supports `:memory:` for testing.
+
 ### Report Module (`src/report/`)
 
 Report-related functionality for storing and retrieving workflow reports:
 
 - **Schemas**: `src/report/schemas/` - Zod schemas for save-report and get-report
-- **Types**: `src/report/types/` - Report interfaces (repository, storage, service, stored-report, result types)
-- **Repository**: `src/report/repository/` - Two-layer storage architecture:
-  - `report.repository.ts` - Public interface with `save(taskId, reportType, content)`, `get(taskId, reportType)`, `clear()`. Handles timestamp generation.
-  - `report.storage.ts` - Internal in-memory Map storage with composite keys (`{taskId}:{reportType}`)
-- **Service**: `src/report/service.ts` - Business logic for report operations
+- **Types**: `src/report/types/` - Report interfaces (storage, service, stored-report, result types)
+- **Storage**: `src/report/repository/report.repository.ts` - SQLite storage with `save(taskId, reportType, content)`, `get()`, `clear()`. Auto-generates timestamps. Uses composite primary key `(task_id, report_type)` with `INSERT OR REPLACE` for upsert.
+- **Service**: `src/report/metadata.report.signal.service.ts` - Business logic for report operations
 
 ### Signal Module (`src/signal/`)
 
@@ -60,8 +64,17 @@ Signal-related functionality for storing and retrieving workflow signals with st
 
 - **Schemas**: `src/signal/schemas/` - Zod schemas for save-signal and get-signal
 - **Types**: `src/signal/types/` - Signal interfaces and `signal-status.type.ts` (SIGNAL_STATUSES: passed/failed)
-- **Repository**: `src/signal/repository/` - Two-layer storage architecture similar to report
-- **Service**: `src/signal/service.ts` - Business logic for signal operations (saveSignal, getSignal)
+- **Storage**: `src/signal/repository/signal.repository.ts` - SQLite storage with `save(taskId, signalType, content)`, `get()`, `clear()`. Auto-generates timestamps. SignalContent is JSON-serialized. Uses composite primary key `(task_id, signal_type)`.
+- **Service**: `src/signal/metadata.report.signal.service.ts` - Business logic for signal operations (saveSignal, waitSignal)
+
+### Metadata Module (`src/metadata/`)
+
+Metadata-related functionality for storing workflow execution state:
+
+- **Schemas**: `src/metadata/schemas/` - Zod schemas for create-metadata and get-next-step
+- **Types**: `src/metadata/types/` - Metadata interfaces (storage, service, stored-metadata, result types)
+- **Storage**: `src/metadata/repository/metadata.repository.ts` - SQLite storage with `create(taskId, executionSteps)`, `get()`, `exists()`, `incrementStep()`, `decrementStep()`, `clear()`. Auto-generates timestamps. ExecutionSteps array is JSON-serialized. Uses primary key `task_id`.
+- **Service**: `src/metadata/metadata.report.signal.service.ts` - Business logic for metadata operations (createMetadata, getNextStep)
 
 The `reportType`/`signalType` must be one of the 12 valid workflow steps defined in `REPORT_TYPES`.
 

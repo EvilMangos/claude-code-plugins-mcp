@@ -5,7 +5,7 @@
  * @param error - The caught error to format
  * @returns A formatted error message string
  */
-export function formatStorageError(error: unknown): string {
+export function formatRepositoryError(error: unknown): string {
 	return error instanceof Error
 		? error.message
 		: "Unknown report-repository error";

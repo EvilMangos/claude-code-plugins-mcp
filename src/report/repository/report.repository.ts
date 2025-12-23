@@ -1,51 +1,73 @@
 import { inject, injectable } from "inversify";
 import { TOKENS } from "../../container";
+import type { SqliteDatabase } from "../../storage/sqlite-database";
 import type { ReportType } from "../../types/report.type";
-import type { IReportRepository } from "../types/report-repository.interface";
-import type { IReportStorage } from "../types/report-storage.interface";
+import type { IReportRepository } from "../types/report.repository.interface";
 import type { IStoredReport } from "../types/stored-report.interface";
 
 /**
- * Repository for managing workflow reports.
- * Wraps the underlying report-repository implementation and handles timestamp generation.
+ * Row structure for reports table in SQLite.
+ */
+interface ReportRow {
+	task_id: string;
+	report_type: string;
+	content: string;
+	saved_at: string;
+}
+
+/**
+ * SQLite implementation of report storage.
+ * Uses better-sqlite3 for synchronous operations.
  */
 @injectable()
-export class ReportRepositoryImpl implements IReportRepository {
+export class ReportRepository implements IReportRepository {
 	constructor(
-		@inject(TOKENS.ReportStorage) private readonly storage: IReportStorage
+		@inject(TOKENS.SqliteDatabase)
+		private readonly database: SqliteDatabase
 	) {}
 
 	/**
-	 * Save a report to report-repository with auto-generated timestamp.
-	 * @param taskId - The task identifier
-	 * @param reportType - The type of report (workflow step)
-	 * @param content - The report content
+	 * Save a report to the database with auto-generated timestamp (upsert behavior).
 	 */
 	save(taskId: string, reportType: ReportType, content: string): void {
-		const storedReport: IStoredReport = {
-			taskId,
-			reportType,
-			content,
-			savedAt: new Date().toISOString(),
-		};
-		this.storage.save(storedReport);
+		const db = this.database.getDatabase();
+		const stmt = db.prepare(`
+			INSERT OR REPLACE INTO reports (task_id, report_type, content, saved_at)
+			VALUES (?, ?, ?, ?)
+		`);
+		const savedAt = new Date().toISOString();
+		stmt.run(taskId, reportType, content, savedAt);
 	}
 
 	/**
-	 * Get a report from report-repository.
-	 * @param taskId - The task identifier
-	 * @param reportType - The type of report (workflow step)
-	 * @returns The stored report if found, undefined otherwise
+	 * Get a report from the database.
 	 */
 	get(taskId: string, reportType: ReportType): IStoredReport | undefined {
-		return this.storage.get(taskId, reportType);
+		const db = this.database.getDatabase();
+		const stmt = db.prepare(`
+			SELECT task_id, report_type, content, saved_at
+			FROM reports
+			WHERE task_id = ? AND report_type = ?
+		`);
+		const row = stmt.get(taskId, reportType) as ReportRow | undefined;
+
+		if (!row) {
+			return undefined;
+		}
+
+		return {
+			taskId: row.task_id,
+			reportType: row.report_type as ReportType,
+			content: row.content,
+			savedAt: row.saved_at,
+		};
 	}
 
 	/**
-	 * Clear all reports from report-repository.
-	 * Useful for test isolation.
+	 * Clear all reports from the database.
 	 */
 	clear(): void {
-		this.storage.clear();
+		const db = this.database.getDatabase();
+		db.exec("DELETE FROM reports");
 	}
 }

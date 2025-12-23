@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { IMetadataRepository } from "../../metadata/types/metadata-repository.interface";
+import type { IMetadataRepository } from "../../metadata/types/metadata.repository.interface";
 import { ReportType } from "../../types/report.type";
-import { SignalServiceImpl } from "../service";
-import type { ISignalRepository } from "../types/signal-repository.interface";
+import { SignalService } from "../signal.service";
+import type { ISignalRepository } from "../types/signal.repository.interface";
 import type { IStoredSignal } from "../types/stored-signal.interface";
 
 // Create mock repository
@@ -22,10 +22,7 @@ const mockMetadataRepository: IMetadataRepository = {
 };
 
 // Create service with mock repositories
-const signalService = new SignalServiceImpl(
-	mockRepository,
-	mockMetadataRepository
-);
+const signalService = new SignalService(mockRepository, mockMetadataRepository);
 
 /**
  * Helper to create a stored signal

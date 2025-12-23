@@ -6,7 +6,7 @@ import {
 } from "./helpers/mcp-test-utils";
 import { REPORT_TYPES } from "../types/report.type";
 import { TOKENS } from "../container";
-import { IReportStorage } from "../report/types/report-storage.interface";
+import { IReportRepository } from "../report/types/report.repository.interface";
 
 /**
  * Integration tests for MCP tool registration.
@@ -178,10 +178,10 @@ describe("MCP Server Tool Registration", () => {
 				expect(parsedResult.success).toBe(true);
 
 				// Verify the report was stored by checking report-repository via container
-				const reportStorage = container.get<IReportStorage>(
-					TOKENS.ReportStorage
+				const reportRepository = container.get<IReportRepository>(
+					TOKENS.ReportRepository
 				);
-				const storedReport = reportStorage.get(
+				const storedReport = reportRepository.get(
 					"integration-test-123",
 					"implementation"
 				);
@@ -395,10 +395,10 @@ describe("MCP Server Tool Registration", () => {
 				expect(parsedResult.content).toBe("Security integration test content");
 
 				// Verify consistency with direct report-repository access via container
-				const reportStorage = container.get<IReportStorage>(
-					TOKENS.ReportStorage
+				const reportRepository = container.get<IReportRepository>(
+					TOKENS.ReportRepository
 				);
-				const storedReport = reportStorage.get(
+				const storedReport = reportRepository.get(
 					"integration-module-test-789",
 					"security"
 				);

@@ -126,7 +126,7 @@ src/
 ├── container/                  # DI container setup
 ├── tools/
 │   ├── register.ts             # Tool registration
-│   ├── report.service.ts       # Report service implementation
+│   ├── report.metadata.report.signal.service.ts       # Report service implementation
 │   └── schemas/                # Zod validation schemas
 ├── report-repository/          # Storage layer
 ├── types/                      # TypeScript interfaces

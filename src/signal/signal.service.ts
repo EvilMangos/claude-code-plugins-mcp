@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { TOKENS } from "../container";
-import type { IMetadataRepository } from "../metadata/types/metadata-repository.interface";
-import { formatStorageError } from "../utils/format-storage.error";
+import type { IMetadataRepository } from "../metadata/types/metadata.repository.interface";
+import { formatRepositoryError } from "../utils/format-repository.error";
 import { formatZodError } from "../utils/format-zod.error";
 import {
 	type SaveSignalInput,
@@ -12,8 +12,8 @@ import {
 	waitSignalSchema,
 } from "./schemas/wait-signal.schema";
 import type { ISaveSignalResult } from "./types/save-signal-result.interface";
-import type { ISignalRepository } from "./types/signal-repository.interface";
-import type { ISignalService } from "./types/signal-service.interface";
+import type { ISignalRepository } from "./types/signal.repository.interface";
+import type { ISignalService } from "./types/signal.service.interface";
 import type { IWaitSignalResult } from "./types/wait-signal-result.interface";
 import { ReportType } from "../types/report.type";
 import { SignalContent } from "./schemas/signal-content.schema";
@@ -21,10 +21,10 @@ import { SignalStatus } from "./types/signal-status.type";
 
 /**
  * Service for managing workflow signals.
- * Provides methods to save signals to storage.
+ * Provides methods to save signals to repository.
  */
 @injectable()
-export class SignalServiceImpl implements ISignalService {
+export class SignalService implements ISignalService {
 	constructor(
 		@inject(TOKENS.SignalRepository)
 		private readonly repository: ISignalRepository,
@@ -33,7 +33,7 @@ export class SignalServiceImpl implements ISignalService {
 	) {}
 
 	/**
-	 * Save a workflow signal to in-memory storage.
+	 * Save a workflow signal to in-memory repository.
 	 * Does NOT update metadata step - step progression is handled by waitSignal
 	 * to properly support parallel steps (increment once after ALL signals received).
 	 *
@@ -65,14 +65,14 @@ export class SignalServiceImpl implements ISignalService {
 		} catch (error) {
 			return {
 				success: false,
-				error: formatStorageError(error),
+				error: formatRepositoryError(error),
 			};
 		}
 	}
 
 	/**
-	 * Wait for one or more workflow signals to appear in storage.
-	 * Polls the storage at regular intervals until **all** requested signals are found or the timeout is reached.
+	 * Wait for one or more workflow signals to appear in repository.
+	 * Polls the repository at regular intervals until **all** requested signals are found or the timeout is reached.
 	 * When multiple signal types are provided, it returns combined content in the same order as requested.
 	 *
 	 * @param input - The signal input containing taskId, signalType (single or array), and optional timeout/polling settings
@@ -155,7 +155,7 @@ export class SignalServiceImpl implements ISignalService {
 		} catch (error) {
 			return {
 				success: false,
-				error: formatStorageError(error),
+				error: formatRepositoryError(error),
 				waitedMs: Date.now() - startTime,
 			};
 		}
