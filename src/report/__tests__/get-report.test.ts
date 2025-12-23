@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ReportService } from "../report.service";
 import { ReportType } from "../../types/report.type";
 import { GetReportInput } from "../schemas/get-report.schema";
-import type { IStoredReport } from "../types/stored-report.interface";
+import type { StoredReport } from "../types/stored-report.interface";
 import { createMockReportRepository } from "../repository/__mocks__/report.repository.mock";
 
 /**
@@ -219,7 +219,7 @@ describe("ReportService.getReport", () => {
 		it.concurrent(
 			"should return success with content when report exists",
 			async () => {
-				const storedReport: IStoredReport = {
+				const storedReport: StoredReport = {
 					taskId: "develop-feature-auth-123",
 					reportType: "requirements",
 					content: "# Requirements Report\n\nThis is the content.",
@@ -245,7 +245,7 @@ describe("ReportService.getReport", () => {
 		it.concurrent(
 			"should return only content string from repository",
 			async () => {
-				const storedReport: IStoredReport = {
+				const storedReport: StoredReport = {
 					taskId: "task-id-1",
 					reportType: "plan",
 					content: "# Plan Content",
@@ -388,7 +388,7 @@ describe("ReportService.getReport", () => {
 
 	describe("Edge Cases", () => {
 		it.concurrent("should handle concurrent get calls", async () => {
-			const storedReports: IStoredReport[] = [
+			const storedReports: StoredReport[] = [
 				{
 					taskId: "task-concurrent-1",
 					reportType: "requirements",
@@ -458,7 +458,7 @@ describe("ReportService.getReport", () => {
 			"should return report with large content unchanged",
 			async () => {
 				const largeContent = "x".repeat(1000000);
-				const storedReport: IStoredReport = {
+				const storedReport: StoredReport = {
 					taskId: "task-large",
 					reportType: "requirements",
 					content: largeContent,
@@ -485,7 +485,7 @@ describe("ReportService.getReport", () => {
 			async () => {
 				const specialContent =
 					"Content with unicode: \u0000\u0001\u0002 and emojis: \uD83D\uDE00\uD83D\uDE01";
-				const storedReport: IStoredReport = {
+				const storedReport: StoredReport = {
 					taskId: "task-special",
 					reportType: "requirements",
 					content: specialContent,
@@ -524,7 +524,7 @@ const code = "example";
 |-------|--------|
 | Cell  | Cell   |
 `;
-				const storedReport: IStoredReport = {
+				const storedReport: StoredReport = {
 					taskId: "task-markdown",
 					reportType: "documentation",
 					content: markdownContent,

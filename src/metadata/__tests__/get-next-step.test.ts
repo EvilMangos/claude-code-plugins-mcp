@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReportType } from "../../types/report.type";
 import { MetadataService } from "../metadata.service";
-import type { IStoredMetadata } from "../types/stored-metadata.interface";
+import type { StoredMetadata } from "../types/stored-metadata.interface";
 import { createMockMetadataRepository } from "../repository/__mocks__/metadata.repository.mock";
 
 // Create mock repository
@@ -23,7 +23,7 @@ describe("MetadataService.getNextStep", () => {
 		it.concurrent(
 			"should return the current step for in-progress workflow",
 			async () => {
-				const metadata: IStoredMetadata = {
+				const metadata: StoredMetadata = {
 					taskId: "task-123",
 					startedAt: "2024-01-01T00:00:00.000Z",
 					savedAt: "2024-01-01T00:00:00.000Z",
@@ -48,7 +48,7 @@ describe("MetadataService.getNextStep", () => {
 		);
 
 		it.concurrent("should return step 2 when at index 1", async () => {
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "task-123",
 				startedAt: "2024-01-01T00:00:00.000Z",
 				savedAt: "2024-01-01T00:00:00.000Z",
@@ -70,7 +70,7 @@ describe("MetadataService.getNextStep", () => {
 		});
 
 		it.concurrent("should return correct totalSteps", async () => {
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "task-123",
 				startedAt: "2024-01-01T00:00:00.000Z",
 				savedAt: "2024-01-01T00:00:00.000Z",
@@ -95,7 +95,7 @@ describe("MetadataService.getNextStep", () => {
 		it.concurrent(
 			"should return complete: true when completedAt is set",
 			async () => {
-				const metadata: IStoredMetadata = {
+				const metadata: StoredMetadata = {
 					taskId: "task-123",
 					startedAt: "2024-01-01T00:00:00.000Z",
 					completedAt: "2024-01-01T01:00:00.000Z",
@@ -116,7 +116,7 @@ describe("MetadataService.getNextStep", () => {
 		it.concurrent(
 			"should return step: undefined when workflow is complete",
 			async () => {
-				const metadata: IStoredMetadata = {
+				const metadata: StoredMetadata = {
 					taskId: "task-123",
 					startedAt: "2024-01-01T00:00:00.000Z",
 					completedAt: "2024-01-01T01:00:00.000Z",
@@ -137,7 +137,7 @@ describe("MetadataService.getNextStep", () => {
 		it.concurrent(
 			"should return complete: false when completedAt is not set",
 			async () => {
-				const metadata: IStoredMetadata = {
+				const metadata: StoredMetadata = {
 					taskId: "task-123",
 					startedAt: "2024-01-01T00:00:00.000Z",
 					savedAt: "2024-01-01T00:00:00.000Z",
@@ -158,7 +158,7 @@ describe("MetadataService.getNextStep", () => {
 		it.concurrent(
 			"should still return stepNumber and totalSteps when complete",
 			async () => {
-				const metadata: IStoredMetadata = {
+				const metadata: StoredMetadata = {
 					taskId: "task-123",
 					startedAt: "2024-01-01T00:00:00.000Z",
 					completedAt: "2024-01-01T01:00:00.000Z",
@@ -240,7 +240,7 @@ describe("MetadataService.getNextStep", () => {
 		];
 
 		it.concurrent("should handle 12-step workflow at first step", async () => {
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "full-workflow",
 				startedAt: "2024-01-01T00:00:00.000Z",
 				savedAt: "2024-01-01T00:00:00.000Z",
@@ -266,7 +266,7 @@ describe("MetadataService.getNextStep", () => {
 		it.concurrent(
 			"should handle 12-step workflow at last step (not complete)",
 			async () => {
-				const metadata: IStoredMetadata = {
+				const metadata: StoredMetadata = {
 					taskId: "full-workflow",
 					startedAt: "2024-01-01T00:00:00.000Z",
 					savedAt: "2024-01-01T00:00:00.000Z",
@@ -291,7 +291,7 @@ describe("MetadataService.getNextStep", () => {
 		);
 
 		it.concurrent("should handle 12-step workflow when complete", async () => {
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "full-workflow",
 				startedAt: "2024-01-01T00:00:00.000Z",
 				completedAt: "2024-01-01T02:00:00.000Z",

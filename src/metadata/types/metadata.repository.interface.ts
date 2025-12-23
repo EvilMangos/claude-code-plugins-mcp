@@ -1,10 +1,10 @@
 import type { ExecutionStep } from "../../types/execution-step.type";
-import type { IStoredMetadata } from "./stored-metadata.interface";
+import type { StoredMetadata } from "./stored-metadata.interface";
 
 /**
  * Repository layer interface for metadata.
  */
-export interface IMetadataRepository {
+export interface MetadataRepository {
 	/**
 	 * Create metadata for a new task with auto-generated timestamps.
 	 * Sets startedAt and savedAt, initializes currentStepIndex to 0.
@@ -18,7 +18,7 @@ export interface IMetadataRepository {
 	 * @param taskId - The task identifier
 	 * @returns The stored metadata if found, undefined otherwise
 	 */
-	get(taskId: string): IStoredMetadata | undefined;
+	get(taskId: string): StoredMetadata | undefined;
 
 	/**
 	 * Increment the currentStepIndex for a task.

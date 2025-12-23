@@ -3,7 +3,7 @@ import type { SignalContent } from "../schemas/signal-content.schema";
 /**
  * Result of a wait-signal operation.
  */
-export interface IWaitSignalResult {
+export interface WaitSignalResult {
 	/**
 	 * Indicates whether the operation was successful.
 	 */

@@ -4,7 +4,7 @@ import { SignalContent } from "../schemas/signal-content.schema";
 /**
  * Stored signal structure.
  */
-export interface IStoredSignal {
+export interface StoredSignal {
 	taskId: string;
 	signalType: ReportType;
 	content: SignalContent;

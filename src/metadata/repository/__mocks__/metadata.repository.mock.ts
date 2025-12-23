@@ -1,11 +1,11 @@
 import { vi } from "vitest";
-import type { IMetadataRepository } from "../../types/metadata.repository.interface";
+import type { MetadataRepository } from "../../types/metadata.repository.interface";
 
 /**
- * Creates a fresh mock instance of IMetadataRepository.
+ * Creates a fresh mock instance of MetadataRepository.
  * Use this factory function to get a clean mock for each test suite.
  */
-export function createMockMetadataRepository(): IMetadataRepository {
+export function createMockMetadataRepository(): MetadataRepository {
 	return {
 		create: vi.fn(),
 		get: vi.fn(),

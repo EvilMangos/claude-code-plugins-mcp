@@ -39,9 +39,9 @@ The server uses stdio transport for MCP communication:
 - **Entry point**: `src/index.ts` - Creates McpServer and connects via StdioServerTransport
 - **Tool registration**: `src/tools/register.ts` - Registers MCP tools with Zod schemas
 - **Common schemas**: `src/schemas/` - Shared Zod validation schemas (e.g., `shared.schema.ts` with `taskIdSchema`)
-- **Common types**: `src/types/` - Shared types and constants (e.g., `report.type.ts` exports `REPORT_TYPES` constant and `ReportType` type)
-- **Utilities**: `src/utils/` - Shared helper functions (e.g., `format-zod.error.ts`, `format-repository.error.ts`)
-- **Container**: `src/container/` - Inversify dependency injection setup
+- **Common types**: `src/types/` - Shared types and constants (e.g., `report.type.ts` exports `REPORT_TYPES` constant and `ReportType` type; `operation-result.interface.ts` for generic operation results)
+- **Utilities**: `src/utils/` - Shared helper functions (e.g., `format-zod.error.ts`, `format-error.ts`, `validate-input.ts` for centralized schema validation)
+- **Container**: `src/container/` - Inversify dependency injection setup with configuration-driven bindings in `setup.ts`
 
 ### Storage Module (`src/storage/`)
 
@@ -54,7 +54,7 @@ Shared SQLite database infrastructure:
 Report-related functionality for storing and retrieving workflow reports:
 
 - **Schemas**: `src/report/schemas/` - Zod schemas for save-report and get-report
-- **Types**: `src/report/types/` - Report interfaces (storage, service, stored-report, result types)
+- **Types**: `src/report/types/` - Report interfaces (storage, service, stored-report, result types, `report-row.interface.ts` for SQLite row structure)
 - **Storage**: `src/report/repository/report.repository.ts` - SQLite storage with `save(taskId, reportType, content)`, `get()`, `clear()`. Auto-generates timestamps. Uses composite primary key `(task_id, report_type)` with `INSERT OR REPLACE` for upsert.
 - **Service**: `src/report/report.service.ts` - Business logic for report operations
 
@@ -63,7 +63,7 @@ Report-related functionality for storing and retrieving workflow reports:
 Signal-related functionality for storing and retrieving workflow signals with status/summary:
 
 - **Schemas**: `src/signal/schemas/` - Zod schemas for save-signal and get-signal
-- **Types**: `src/signal/types/` - Signal interfaces and `signal-status.type.ts` (SIGNAL_STATUSES: passed/failed)
+- **Types**: `src/signal/types/` - Signal interfaces, `signal-status.type.ts` (SIGNAL_STATUSES: passed/failed), and `signal-row.interface.ts` for SQLite row structure
 - **Storage**: `src/signal/repository/signal.repository.ts` - SQLite storage with `save(taskId, signalType, content)`, `get()`, `clear()`. Auto-generates timestamps. SignalContent is JSON-serialized. Uses composite primary key `(task_id, signal_type)`.
 - **Service**: `src/signal/signal.service.ts` - Business logic for signal operations (saveSignal, waitSignal)
 
@@ -72,7 +72,7 @@ Signal-related functionality for storing and retrieving workflow signals with st
 Metadata-related functionality for storing workflow execution state:
 
 - **Schemas**: `src/metadata/schemas/` - Zod schemas for create-metadata and get-next-step
-- **Types**: `src/metadata/types/` - Metadata interfaces (storage, service, stored-metadata, result types)
+- **Types**: `src/metadata/types/` - Metadata interfaces (storage, service, stored-metadata, result types, `metadata-row.interface.ts` for SQLite row structure)
 - **Storage**: `src/metadata/repository/metadata.repository.ts` - SQLite storage with `create(taskId, executionSteps)`, `get()`, `exists()`, `incrementStep()`, `decrementStep()`, `clear()`. Auto-generates timestamps. ExecutionSteps array is JSON-serialized. Uses primary key `task_id`.
 - **Service**: `src/metadata/metadata.service.ts` - Business logic for metadata operations (createMetadata, getNextStep)
 
@@ -98,11 +98,6 @@ Husky runs on commit: `pnpm run format` → `pnpm run lint:fix` → `git add -u`
 ## MCP
 
 - Use `server.registerTool` not `server.tool`.
-
-## Code style
-
-### Naming
-- Use descriptive names for interfaces without prefix, e.g. `StoredReport`, `SaveReportResult`
 
 ## Code organization
 

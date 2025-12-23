@@ -2,20 +2,9 @@ import { inject, injectable } from "inversify";
 import { TOKENS } from "../../container";
 import type { SqliteDatabase } from "../../storage/sqlite-database";
 import type { ExecutionStep } from "../../types/execution-step.type";
-import type { IMetadataRepository } from "../types/metadata.repository.interface";
-import type { IStoredMetadata } from "../types/stored-metadata.interface";
-
-/**
- * Row structure for metadata table in SQLite.
- */
-interface MetadataRow {
-	task_id: string;
-	started_at: string;
-	completed_at: string | null;
-	saved_at: string;
-	execution_steps: string;
-	current_step_index: number;
-}
+import type { MetadataRepository as MetadataRepositoryInterface } from "../types/metadata.repository.interface";
+import type { MetadataRow } from "../types/metadata-row.interface";
+import type { StoredMetadata } from "../types/stored-metadata.interface";
 
 /**
  * SQLite implementation of metadata storage.
@@ -23,7 +12,7 @@ interface MetadataRow {
  * ExecutionSteps are serialized as JSON.
  */
 @injectable()
-export class MetadataRepository implements IMetadataRepository {
+export class MetadataRepository implements MetadataRepositoryInterface {
 	constructor(
 		@inject(TOKENS.SqliteDatabase)
 		private readonly database: SqliteDatabase
@@ -48,7 +37,7 @@ export class MetadataRepository implements IMetadataRepository {
 	 * Save metadata to the database (upsert behavior).
 	 * ExecutionSteps are serialized to JSON.
 	 */
-	private save(metadata: IStoredMetadata): void {
+	private save(metadata: StoredMetadata): void {
 		const db = this.database.getDatabase();
 		const stmt = db.prepare(`
 			INSERT OR REPLACE INTO metadata (task_id, started_at, completed_at, saved_at, execution_steps, current_step_index)
@@ -70,7 +59,7 @@ export class MetadataRepository implements IMetadataRepository {
 	 * ExecutionSteps are deserialized from JSON.
 	 * Returns undefined if the stored JSON is malformed.
 	 */
-	get(taskId: string): IStoredMetadata | undefined {
+	get(taskId: string): StoredMetadata | undefined {
 		const db = this.database.getDatabase();
 		const stmt = db.prepare(`
 			SELECT task_id, started_at, completed_at, saved_at, execution_steps, current_step_index
@@ -91,7 +80,7 @@ export class MetadataRepository implements IMetadataRepository {
 			return undefined;
 		}
 
-		const result: IStoredMetadata = {
+		const result: StoredMetadata = {
 			taskId: row.task_id,
 			startedAt: row.started_at,
 			savedAt: row.saved_at,

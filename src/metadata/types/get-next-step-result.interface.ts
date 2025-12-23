@@ -3,7 +3,7 @@ import { ExecutionStep } from "../../types/execution-step.type";
 /**
  * Result of getting the next step.
  */
-export interface IGetNextStepResult {
+export interface GetNextStepResult {
 	success: boolean;
 	taskId?: string;
 	stepNumber?: number;

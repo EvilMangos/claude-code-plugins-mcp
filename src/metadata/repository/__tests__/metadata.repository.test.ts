@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { ExecutionStep } from "../../../types/execution-step.type";
 import type { ReportType } from "../../../types/report.type";
-import type { IStoredMetadata } from "../../types/stored-metadata.interface";
+import type { StoredMetadata } from "../../types/stored-metadata.interface";
 import { MetadataRepository } from "../metadata.repository";
 import { SqliteDatabase } from "../../../storage/sqlite-database";
 
@@ -21,7 +21,7 @@ describe("MetadataRepository", () => {
 
 	describe("save", () => {
 		it.concurrent("should save metadata to database", () => {
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "task-123",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
@@ -38,14 +38,14 @@ describe("MetadataRepository", () => {
 		it.concurrent(
 			"should overwrite existing metadata with same taskId (upsert)",
 			() => {
-				const metadata1: IStoredMetadata = {
+				const metadata1: StoredMetadata = {
 					taskId: "task-123",
 					startedAt: "2025-01-15T10:00:00.000Z",
 					savedAt: "2025-01-15T10:30:00.000Z",
 					executionSteps: ["requirements"],
 					currentStepIndex: 0,
 				};
-				const metadata2: IStoredMetadata = {
+				const metadata2: StoredMetadata = {
 					taskId: "task-123",
 					startedAt: "2025-01-15T10:00:00.000Z",
 					savedAt: "2025-01-15T11:30:00.000Z",
@@ -62,14 +62,14 @@ describe("MetadataRepository", () => {
 		);
 
 		it.concurrent("should allow multiple different taskIds", () => {
-			const metadata1: IStoredMetadata = {
+			const metadata1: StoredMetadata = {
 				taskId: "task-1",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
 				executionSteps: ["requirements"],
 				currentStepIndex: 0,
 			};
-			const metadata2: IStoredMetadata = {
+			const metadata2: StoredMetadata = {
 				taskId: "task-2",
 				startedAt: "2025-01-15T11:00:00.000Z",
 				savedAt: "2025-01-15T11:30:00.000Z",
@@ -99,7 +99,7 @@ describe("MetadataRepository", () => {
 				"code-review",
 				"documentation",
 			];
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "task-123",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
@@ -125,7 +125,7 @@ describe("MetadataRepository", () => {
 					["performance", "security"],
 					"documentation",
 				];
-				const metadata: IStoredMetadata = {
+				const metadata: StoredMetadata = {
 					taskId: "task-123",
 					startedAt: "2025-01-15T10:00:00.000Z",
 					savedAt: "2025-01-15T10:30:00.000Z",
@@ -146,7 +146,7 @@ describe("MetadataRepository", () => {
 		);
 
 		it.concurrent("should handle nullable completedAt", () => {
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "task-123",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
@@ -161,7 +161,7 @@ describe("MetadataRepository", () => {
 		});
 
 		it.concurrent("should handle defined completedAt", () => {
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "task-123",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				completedAt: "2025-01-15T12:00:00.000Z",
@@ -177,7 +177,7 @@ describe("MetadataRepository", () => {
 		});
 
 		it.concurrent("should handle empty executionSteps array", () => {
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "task-123",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
@@ -195,7 +195,7 @@ describe("MetadataRepository", () => {
 			const testCases = [0, 1, 5, 11];
 
 			testCases.forEach((index) => {
-				const metadata: IStoredMetadata = {
+				const metadata: StoredMetadata = {
 					taskId: `task-${index}`,
 					startedAt: "2025-01-15T10:00:00.000Z",
 					savedAt: "2025-01-15T10:30:00.000Z",
@@ -213,7 +213,7 @@ describe("MetadataRepository", () => {
 
 	describe("get", () => {
 		it.concurrent("should return stored metadata when found", () => {
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "task-123",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
@@ -239,7 +239,7 @@ describe("MetadataRepository", () => {
 				["plan", "tests-design"],
 				"implementation",
 			];
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "task-123",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
@@ -257,7 +257,7 @@ describe("MetadataRepository", () => {
 		it.concurrent(
 			"should return correct metadata when multiple metadata exist",
 			() => {
-				const metadataList: IStoredMetadata[] = [
+				const metadataList: StoredMetadata[] = [
 					{
 						taskId: "task-1",
 						startedAt: "2025-01-15T10:00:00.000Z",
@@ -291,7 +291,7 @@ describe("MetadataRepository", () => {
 
 	describe("clear", () => {
 		it.concurrent("should remove all metadata from repository", () => {
-			const metadataList: IStoredMetadata[] = [
+			const metadataList: StoredMetadata[] = [
 				{
 					taskId: "task-1",
 					startedAt: "2025-01-15T10:00:00.000Z",
@@ -316,7 +316,7 @@ describe("MetadataRepository", () => {
 		});
 
 		it.concurrent("should allow save after clear", () => {
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "task-1",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
@@ -326,7 +326,7 @@ describe("MetadataRepository", () => {
 			repository["save"](metadata);
 			repository.clear();
 
-			const newMetadata: IStoredMetadata = {
+			const newMetadata: StoredMetadata = {
 				taskId: "task-2",
 				startedAt: "2025-01-15T11:00:00.000Z",
 				savedAt: "2025-01-15T11:30:00.000Z",
@@ -343,7 +343,7 @@ describe("MetadataRepository", () => {
 		});
 
 		it.concurrent("should be callable multiple times", () => {
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "task-1",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
@@ -368,7 +368,7 @@ describe("MetadataRepository", () => {
 					"plan",
 					"implementation",
 				];
-				const metadata: IStoredMetadata = {
+				const metadata: StoredMetadata = {
 					taskId: "task-123",
 					startedAt: "2025-01-15T10:00:00.000Z",
 					savedAt: "2025-01-15T10:30:00.000Z",
@@ -393,7 +393,7 @@ describe("MetadataRepository", () => {
 					["performance", "security", "code-review"],
 					"documentation",
 				];
-				const metadata: IStoredMetadata = {
+				const metadata: StoredMetadata = {
 					taskId: "task-123",
 					startedAt: "2025-01-15T10:00:00.000Z",
 					savedAt: "2025-01-15T10:30:00.000Z",
@@ -427,7 +427,7 @@ describe("MetadataRepository", () => {
 					"code-review",
 					"documentation",
 				];
-				const metadata: IStoredMetadata = {
+				const metadata: StoredMetadata = {
 					taskId: "task-123",
 					startedAt: "2025-01-15T10:00:00.000Z",
 					savedAt: "2025-01-15T10:30:00.000Z",
@@ -445,7 +445,7 @@ describe("MetadataRepository", () => {
 
 	describe("Edge Cases", () => {
 		it.concurrent("should handle taskId with colons", () => {
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "task:with:colons",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
@@ -461,7 +461,7 @@ describe("MetadataRepository", () => {
 
 		it.concurrent("should handle very long taskId", () => {
 			const longTaskId = "task-" + "a".repeat(500);
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: longTaskId,
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
@@ -476,7 +476,7 @@ describe("MetadataRepository", () => {
 		});
 
 		it.concurrent("should preserve exact timestamps", () => {
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "task-1",
 				startedAt: "2025-01-15T10:30:45.123Z",
 				completedAt: "2025-01-15T12:45:30.456Z",
@@ -494,7 +494,7 @@ describe("MetadataRepository", () => {
 		});
 
 		it.concurrent("should handle large currentStepIndex", () => {
-			const metadata: IStoredMetadata = {
+			const metadata: StoredMetadata = {
 				taskId: "task-123",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",

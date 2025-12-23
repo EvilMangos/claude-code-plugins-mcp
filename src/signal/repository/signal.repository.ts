@@ -3,18 +3,9 @@ import { TOKENS } from "../../container";
 import type { SqliteDatabase } from "../../storage/sqlite-database";
 import type { ReportType } from "../../types/report.type";
 import type { SignalContent } from "../schemas/signal-content.schema";
-import type { ISignalRepository } from "../types/signal.repository.interface";
-import type { IStoredSignal } from "../types/stored-signal.interface";
-
-/**
- * Row structure for signals table in SQLite.
- */
-interface SignalRow {
-	task_id: string;
-	signal_type: string;
-	content: string;
-	saved_at: string;
-}
+import type { SignalRepository as SignalRepositoryInterface } from "../types/signal.repository.interface";
+import type { SignalRow } from "../types/signal-row.interface";
+import type { StoredSignal } from "../types/stored-signal.interface";
 
 /**
  * SQLite implementation of signal repository.
@@ -22,7 +13,7 @@ interface SignalRow {
  * Content is serialized as JSON.
  */
 @injectable()
-export class SignalRepository implements ISignalRepository {
+export class SignalRepository implements SignalRepositoryInterface {
 	constructor(
 		@inject(TOKENS.SqliteDatabase)
 		private readonly database: SqliteDatabase
@@ -48,7 +39,7 @@ export class SignalRepository implements ISignalRepository {
 	 * Content is deserialized from JSON.
 	 * Returns undefined if the stored JSON is malformed.
 	 */
-	get(taskId: string, signalType: ReportType): IStoredSignal | undefined {
+	get(taskId: string, signalType: ReportType): StoredSignal | undefined {
 		const db = this.database.getDatabase();
 		const stmt = db.prepare(`
 			SELECT task_id, signal_type, content, saved_at

@@ -1,11 +1,11 @@
 import type { ReportType } from "../../types/report.type";
 import type { SignalContent } from "../schemas/signal-content.schema";
-import type { IStoredSignal } from "./stored-signal.interface";
+import type { StoredSignal } from "./stored-signal.interface";
 
 /**
  * Interface for signal repository operations.
  */
-export interface ISignalRepository {
+export interface SignalRepository {
 	/**
 	 * Save a signal with auto-generated timestamp.
 	 * @param taskId - The task identifier
@@ -20,7 +20,7 @@ export interface ISignalRepository {
 	 * @param signalType - The type of signal (workflow step)
 	 * @returns The stored signal if found, undefined otherwise
 	 */
-	get(taskId: string, signalType: ReportType): IStoredSignal | undefined;
+	get(taskId: string, signalType: ReportType): StoredSignal | undefined;
 
 	/**
 	 * Clear all signals from storage.

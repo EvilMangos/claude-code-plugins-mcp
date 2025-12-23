@@ -1,7 +1,6 @@
+import type { OperationResult } from "../../types/operation-result.interface";
+
 /**
  * Result type for the saveReport function.
  */
-export interface ISaveReportResult {
-	success: boolean;
-	error?: string;
-}
+export type SaveReportResult = OperationResult;

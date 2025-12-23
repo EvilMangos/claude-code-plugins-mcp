@@ -1,8 +1,8 @@
 import { inject, injectable } from "inversify";
 
 import { TOKENS } from "../container";
-import { formatRepositoryError } from "../utils/format-repository.error";
-import { formatZodError } from "../utils/format-zod.error";
+import { formatError } from "../utils/format-error";
+import { validateInput } from "../utils/validate-input";
 import {
 	type CreateMetadataInput,
 	createMetadataSchema,
@@ -11,20 +11,20 @@ import {
 	type GetNextStepInput,
 	getNextStepSchema,
 } from "./schemas/get-next-step.schema";
-import type { ICreateMetadataResult } from "./types/create-metadata-result.interface";
-import type { IGetNextStepResult } from "./types/get-next-step-result.interface";
-import type { IMetadataRepository } from "./types/metadata.repository.interface";
-import type { IMetadataService } from "./types/metadata.service.interface";
+import type { CreateMetadataResult } from "./types/create-metadata-result.interface";
+import type { GetNextStepResult } from "./types/get-next-step-result.interface";
+import type { MetadataRepository } from "./types/metadata.repository.interface";
+import type { MetadataService as MetadataServiceInterface } from "./types/metadata.service.interface";
 
 /**
  * Service for managing task metadata.
  * Provides methods to create and retrieve task lifecycle information.
  */
 @injectable()
-export class MetadataService implements IMetadataService {
+export class MetadataService implements MetadataServiceInterface {
 	constructor(
 		@inject(TOKENS.MetadataRepository)
-		private readonly repository: IMetadataRepository
+		private readonly repository: MetadataRepository
 	) {}
 
 	/**
@@ -32,17 +32,14 @@ export class MetadataService implements IMetadataService {
 	 */
 	async createMetadata(
 		input: CreateMetadataInput
-	): Promise<ICreateMetadataResult> {
-		const parseResult = createMetadataSchema.safeParse(input);
+	): Promise<CreateMetadataResult> {
+		const validation = validateInput(createMetadataSchema, input);
 
-		if (!parseResult.success) {
-			return {
-				success: false,
-				error: formatZodError(parseResult.error),
-			};
+		if (!validation.success) {
+			return validation;
 		}
 
-		const validatedInput = parseResult.data;
+		const validatedInput = validation.data;
 
 		try {
 			this.repository.create(
@@ -53,7 +50,7 @@ export class MetadataService implements IMetadataService {
 		} catch (error) {
 			return {
 				success: false,
-				error: formatRepositoryError(error),
+				error: formatError(error),
 			};
 		}
 	}
@@ -61,17 +58,14 @@ export class MetadataService implements IMetadataService {
 	/**
 	 * Get the next step for a task.
 	 */
-	async getNextStep(input: GetNextStepInput): Promise<IGetNextStepResult> {
-		const parseResult = getNextStepSchema.safeParse(input);
+	async getNextStep(input: GetNextStepInput): Promise<GetNextStepResult> {
+		const validation = validateInput(getNextStepSchema, input);
 
-		if (!parseResult.success) {
-			return {
-				success: false,
-				error: formatZodError(parseResult.error),
-			};
+		if (!validation.success) {
+			return validation;
 		}
 
-		const validatedInput = parseResult.data;
+		const validatedInput = validation.data;
 
 		try {
 			const metadata = this.repository.get(validatedInput.taskId);
@@ -97,7 +91,7 @@ export class MetadataService implements IMetadataService {
 		} catch (error) {
 			return {
 				success: false,
-				error: formatRepositoryError(error),
+				error: formatError(error),
 			};
 		}
 	}
