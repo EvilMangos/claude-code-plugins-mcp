@@ -59,18 +59,30 @@ Save a workflow signal with status and summary for a specific task and step.
 - `status` (string, required) - Signal status: `"passed"` or `"failed"`
 - `summary` (string, required) - Brief summary of the signal
 
-#### `get-signal`
+#### `wait-signal`
 
-Retrieve a previously saved workflow signal.
+Wait for a workflow signal to appear. Polls until the signal is found or timeout is reached.
 
 **Parameters:**
 - `taskId` (string, required) - Unique identifier for the task
-- `signalType` (string, required) - One of the valid workflow steps
+- `signalType` (string or array, required) - Workflow step(s) to wait for. Can be a single step or an array for parallel steps.
+- `timeoutMs` (number, optional) - Maximum wait time in milliseconds (default: 30000, max: 600000)
+- `pollIntervalMs` (number, optional) - Polling interval in milliseconds (default: 1000, min: 100, max: 60000)
 
-**Returns:**
-- `{ success: true, content: { status, summary } }` when signal exists
-- `{ success: true, content: null }` when signal does not exist
-- `{ success: false, error: "message" }` on validation or storage error
+#### `create-metadata`
+
+Create task lifecycle metadata with execution steps.
+
+**Parameters:**
+- `taskId` (string, required) - Unique identifier for the workflow task
+- `executionSteps` (array, required) - Ordered list of workflow steps to execute. Use arrays for parallel steps: `['plan', ['performance', 'security'], 'refactoring']`
+
+#### `get-next-step`
+
+Get the next workflow step for a task.
+
+**Parameters:**
+- `taskId` (string, required) - Unique identifier for the workflow task
 
 ### Valid Report/Signal Types
 
@@ -117,7 +129,7 @@ pnpm run format
 
 - **Transport**: stdio-based MCP communication
 - **Validation**: Zod v4 schemas for input validation
-- **Storage**: In-memory storage with composite keys (`{taskId}:{reportType}`)
+- **Storage**: SQLite with `better-sqlite3` (defaults to `mcp-storage.db` in CWD)
 - **DI**: Inversify for dependency injection
 
 ```
@@ -125,11 +137,13 @@ src/
 ├── index.ts                    # Entry point
 ├── container/                  # DI container setup
 ├── tools/
-│   ├── register.ts             # Tool registration
-│   ├── report.metadata.report.signal.service.ts       # Report service implementation
-│   └── schemas/                # Zod validation schemas
-├── report-repository/          # Storage layer
-├── types/                      # TypeScript interfaces
+│   └── register.ts             # Tool registration
+├── schemas/                    # Shared Zod validation schemas
+├── storage/                    # SQLite database infrastructure
+├── report/                     # Report module (schemas, repository, service)
+├── signal/                     # Signal module (schemas, repository, service)
+├── metadata/                   # Metadata module (schemas, repository, service)
+├── types/                      # Shared TypeScript interfaces
 └── utils/                      # Helper functions
 ```
 

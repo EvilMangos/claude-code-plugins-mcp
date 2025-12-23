@@ -19,7 +19,7 @@ describe("SignalRepository", () => {
 	});
 
 	describe("save", () => {
-		it("should save signal with auto-generated timestamp", () => {
+		it.concurrent("should save signal with auto-generated timestamp", () => {
 			const content: SignalContent = {
 				status: "passed",
 				summary: "All requirements met",
@@ -34,24 +34,27 @@ describe("SignalRepository", () => {
 			expect(retrieved?.savedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/); // ISO timestamp
 		});
 
-		it("should overwrite existing signal with same key (upsert)", () => {
-			const content1: SignalContent = {
-				status: "failed",
-				summary: "Original summary",
-			};
-			const content2: SignalContent = {
-				status: "passed",
-				summary: "Updated summary",
-			};
+		it.concurrent(
+			"should overwrite existing signal with same key (upsert)",
+			() => {
+				const content1: SignalContent = {
+					status: "failed",
+					summary: "Original summary",
+				};
+				const content2: SignalContent = {
+					status: "passed",
+					summary: "Updated summary",
+				};
 
-			repository.save("task-123", "requirements", content1);
-			repository.save("task-123", "requirements", content2);
+				repository.save("task-123", "requirements", content1);
+				repository.save("task-123", "requirements", content2);
 
-			const retrieved = repository.get("task-123", "requirements");
-			expect(retrieved?.content).toEqual(content2);
-		});
+				const retrieved = repository.get("task-123", "requirements");
+				expect(retrieved?.content).toEqual(content2);
+			}
+		);
 
-		it("should allow same taskId with different signalTypes", () => {
+		it.concurrent("should allow same taskId with different signalTypes", () => {
 			const content1: SignalContent = {
 				status: "passed",
 				summary: "Requirements passed",
@@ -70,7 +73,7 @@ describe("SignalRepository", () => {
 			expect(retrieved2?.content).toEqual(content2);
 		});
 
-		it("should handle passed status", () => {
+		it.concurrent("should handle passed status", () => {
 			const content: SignalContent = {
 				status: "passed",
 				summary: "Test passed",
@@ -81,7 +84,7 @@ describe("SignalRepository", () => {
 			expect(retrieved?.content.status).toBe("passed");
 		});
 
-		it("should handle failed status", () => {
+		it.concurrent("should handle failed status", () => {
 			const content: SignalContent = {
 				status: "failed",
 				summary: "Test failed",
@@ -92,7 +95,7 @@ describe("SignalRepository", () => {
 			expect(retrieved?.content.status).toBe("failed");
 		});
 
-		it("should handle summary with special characters", () => {
+		it.concurrent("should handle summary with special characters", () => {
 			const specialSummary =
 				'Summary with "quotes" and \nnewlines and unicode: \u0000\u0001 and emojis: \u{1F600}';
 			const content: SignalContent = {
@@ -106,7 +109,7 @@ describe("SignalRepository", () => {
 			expect(retrieved?.content.summary).toBe(specialSummary);
 		});
 
-		it("should handle empty summary", () => {
+		it.concurrent("should handle empty summary", () => {
 			const content: SignalContent = { status: "passed", summary: "" };
 			repository.save("task-123", "requirements", content);
 
@@ -114,7 +117,7 @@ describe("SignalRepository", () => {
 			expect(retrieved?.content.summary).toBe("");
 		});
 
-		it("should handle large summary", () => {
+		it.concurrent("should handle large summary", () => {
 			const largeSummary = "x".repeat(100000); // 100KB summary
 			const content: SignalContent = {
 				status: "passed",
@@ -128,7 +131,7 @@ describe("SignalRepository", () => {
 			expect(retrieved?.content.summary.length).toBe(100000);
 		});
 
-		it("should save signals with all 12 signal types", () => {
+		it.concurrent("should save signals with all 12 signal types", () => {
 			REPORT_TYPES.forEach((signalType, index) => {
 				const content: SignalContent = {
 					status: index % 2 === 0 ? "passed" : "failed",
@@ -148,56 +151,65 @@ describe("SignalRepository", () => {
 	});
 
 	describe("get", () => {
-		it("should return stored signal with deserialized content", () => {
-			const content: SignalContent = {
-				status: "passed",
-				summary: "Test summary",
-			};
-			repository.save("task-123", "requirements", content);
+		it.concurrent(
+			"should return stored signal with deserialized content",
+			() => {
+				const content: SignalContent = {
+					status: "passed",
+					summary: "Test summary",
+				};
+				repository.save("task-123", "requirements", content);
 
-			const retrieved = repository.get("task-123", "requirements");
+				const retrieved = repository.get("task-123", "requirements");
 
-			expect(retrieved?.content).toEqual(content);
-			expect(retrieved?.content.status).toBe("passed");
-			expect(retrieved?.content.summary).toBe("Test summary");
-		});
+				expect(retrieved?.content).toEqual(content);
+				expect(retrieved?.content.status).toBe("passed");
+				expect(retrieved?.content.summary).toBe("Test summary");
+			}
+		);
 
-		it("should return undefined when signal not found", () => {
+		it.concurrent("should return undefined when signal not found", () => {
 			const retrieved = repository.get("nonexistent-task", "requirements");
 
 			expect(retrieved).toBeUndefined();
 		});
 
-		it("should return undefined when taskId exists but signalType does not", () => {
-			const content: SignalContent = { status: "passed", summary: "Test" };
-			repository.save("task-123", "requirements", content);
+		it.concurrent(
+			"should return undefined when taskId exists but signalType does not",
+			() => {
+				const content: SignalContent = { status: "passed", summary: "Test" };
+				repository.save("task-123", "requirements", content);
 
-			const retrieved = repository.get("task-123", "plan");
+				const retrieved = repository.get("task-123", "plan");
 
-			expect(retrieved).toBeUndefined();
-		});
+				expect(retrieved).toBeUndefined();
+			}
+		);
 
-		it("should return correct signal when multiple signals exist", () => {
-			repository.save("task-1", "requirements", {
-				status: "passed",
-				summary: "S1",
-			});
-			repository.save("task-1", "plan", { status: "failed", summary: "S2" });
-			repository.save("task-2", "requirements", {
-				status: "passed",
-				summary: "S3",
-			});
+		it.concurrent(
+			"should return correct signal when multiple signals exist",
+			() => {
+				repository.save("task-1", "requirements", {
+					status: "passed",
+					summary: "S1",
+				});
+				repository.save("task-1", "plan", { status: "failed", summary: "S2" });
+				repository.save("task-2", "requirements", {
+					status: "passed",
+					summary: "S3",
+				});
 
-			expect(repository.get("task-1", "requirements")?.content.summary).toBe(
-				"S1"
-			);
-			expect(repository.get("task-1", "plan")?.content.summary).toBe("S2");
-			expect(repository.get("task-2", "requirements")?.content.summary).toBe(
-				"S3"
-			);
-		});
+				expect(repository.get("task-1", "requirements")?.content.summary).toBe(
+					"S1"
+				);
+				expect(repository.get("task-1", "plan")?.content.summary).toBe("S2");
+				expect(repository.get("task-2", "requirements")?.content.summary).toBe(
+					"S3"
+				);
+			}
+		);
 
-		it("should accept all 12 valid signal types", () => {
+		it.concurrent("should accept all 12 valid signal types", () => {
 			REPORT_TYPES.forEach((signalType) => {
 				const content: SignalContent = {
 					status: "passed",
@@ -212,7 +224,7 @@ describe("SignalRepository", () => {
 	});
 
 	describe("clear", () => {
-		it("should remove all signals from repository", () => {
+		it.concurrent("should remove all signals from repository", () => {
 			repository.save("task-1", "requirements", {
 				status: "passed",
 				summary: "S1",
@@ -225,7 +237,7 @@ describe("SignalRepository", () => {
 			expect(repository.get("task-2", "plan")).toBeUndefined();
 		});
 
-		it("should allow save after clear", () => {
+		it.concurrent("should allow save after clear", () => {
 			repository.save("task-1", "requirements", {
 				status: "passed",
 				summary: "S1",
@@ -237,11 +249,11 @@ describe("SignalRepository", () => {
 			expect(repository.get("task-2", "plan")?.content.summary).toBe("S2");
 		});
 
-		it("should not throw when clearing empty repository", () => {
+		it.concurrent("should not throw when clearing empty repository", () => {
 			expect(() => repository.clear()).not.toThrow();
 		});
 
-		it("should be callable multiple times", () => {
+		it.concurrent("should be callable multiple times", () => {
 			repository.save("task-1", "requirements", {
 				status: "passed",
 				summary: "S1",
@@ -255,7 +267,7 @@ describe("SignalRepository", () => {
 	});
 
 	describe("JSON Serialization/Deserialization", () => {
-		it("should correctly serialize SignalContent to JSON", () => {
+		it.concurrent("should correctly serialize SignalContent to JSON", () => {
 			const content: SignalContent = {
 				status: "passed",
 				summary: "Test summary",
@@ -268,7 +280,7 @@ describe("SignalRepository", () => {
 			expect(retrieved?.content.summary).toBe("Test summary");
 		});
 
-		it("should preserve content structure after round-trip", () => {
+		it.concurrent("should preserve content structure after round-trip", () => {
 			const originalContent: SignalContent = {
 				status: "failed",
 				summary: "Detailed failure summary with special chars: <>\"'&",
@@ -281,7 +293,7 @@ describe("SignalRepository", () => {
 	});
 
 	describe("Edge Cases", () => {
-		it("should handle taskId with colons", () => {
+		it.concurrent("should handle taskId with colons", () => {
 			const content: SignalContent = { status: "passed", summary: "Test" };
 			repository.save("task:with:colons", "requirements", content);
 
@@ -289,7 +301,7 @@ describe("SignalRepository", () => {
 			expect(retrieved?.content).toEqual(content);
 		});
 
-		it("should handle very long taskId", () => {
+		it.concurrent("should handle very long taskId", () => {
 			const longTaskId = "task-" + "a".repeat(500);
 			const content: SignalContent = { status: "passed", summary: "Test" };
 
@@ -299,7 +311,7 @@ describe("SignalRepository", () => {
 			expect(retrieved?.content).toEqual(content);
 		});
 
-		it("should generate ISO timestamp for savedAt", () => {
+		it.concurrent("should generate ISO timestamp for savedAt", () => {
 			const content: SignalContent = { status: "passed", summary: "Test" };
 			repository.save("task-1", "requirements", content);
 

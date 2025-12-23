@@ -1,28 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { IMetadataRepository } from "../../metadata/types/metadata.repository.interface";
 import { ReportType } from "../../types/report.type";
 import { SignalService } from "../signal.service";
-import type { ISignalRepository } from "../types/signal.repository.interface";
 import type { IStoredSignal } from "../types/stored-signal.interface";
-
-// Create mock repository
-const mockRepository: ISignalRepository = {
-	save: vi.fn(),
-	get: vi.fn(),
-	clear: vi.fn(),
-};
-
-// Create mock metadata repository
-const mockMetadataRepository: IMetadataRepository = {
-	create: vi.fn(),
-	get: vi.fn(),
-	incrementStep: vi.fn(),
-	decrementStep: vi.fn(),
-	clear: vi.fn(),
-};
-
-// Create service with mock repositories
-const signalService = new SignalService(mockRepository, mockMetadataRepository);
+import { createMockSignalRepository } from "../repository/__mocks__/signal.repository.mock";
+import { createMockMetadataRepository } from "../../metadata/repository/__mocks__/metadata.repository.mock";
 
 /**
  * Helper to create a stored signal
@@ -43,161 +24,219 @@ function createStoredSignal(
 
 describe("SignalService.waitSignal", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
 		vi.useFakeTimers();
 	});
 
 	afterEach(() => {
-		vi.clearAllMocks();
 		vi.useRealTimers();
 	});
 
 	describe("Step Progression", () => {
-		it("should increment step once when single signal is passed", async () => {
-			const taskId = "task-123";
-			vi.mocked(mockRepository.get).mockReturnValue(
-				createStoredSignal(taskId, "requirements", "passed", "OK")
-			);
+		it.concurrent(
+			"should increment step once when single signal is passed",
+			async () => {
+				const mockRepository = createMockSignalRepository();
+				const mockMetadataRepository = createMockMetadataRepository();
+				const signalService = new SignalService(
+					mockRepository,
+					mockMetadataRepository
+				);
 
-			const resultPromise = signalService.waitSignal({
-				taskId,
-				signalType: "requirements",
-				timeoutMs: 1000,
-				pollIntervalMs: 100,
-			});
+				const taskId = "task-123";
+				vi.mocked(mockRepository.get).mockReturnValue(
+					createStoredSignal(taskId, "requirements", "passed", "OK")
+				);
 
-			await vi.runAllTimersAsync();
-			const result = await resultPromise;
+				const resultPromise = signalService.waitSignal({
+					taskId,
+					signalType: "requirements",
+					timeoutMs: 1000,
+					pollIntervalMs: 100,
+				});
 
-			expect(result.success).toBe(true);
-			expect(mockMetadataRepository.incrementStep).toHaveBeenCalledTimes(1);
-			expect(mockMetadataRepository.incrementStep).toHaveBeenCalledWith(taskId);
-			expect(mockMetadataRepository.decrementStep).not.toHaveBeenCalled();
-		});
+				await vi.runAllTimersAsync();
+				const result = await resultPromise;
 
-		it("should decrement step once when single signal is failed", async () => {
-			const taskId = "task-123";
-			vi.mocked(mockRepository.get).mockReturnValue(
-				createStoredSignal(taskId, "requirements", "failed", "Error")
-			);
+				expect(result.success).toBe(true);
+				expect(mockMetadataRepository.incrementStep).toHaveBeenCalledWith(
+					taskId
+				);
+				expect(mockMetadataRepository.decrementStep).not.toHaveBeenCalled();
+			}
+		);
 
-			const resultPromise = signalService.waitSignal({
-				taskId,
-				signalType: "requirements",
-				timeoutMs: 1000,
-				pollIntervalMs: 100,
-			});
+		it.concurrent(
+			"should decrement step once when single signal is failed",
+			async () => {
+				const mockRepository = createMockSignalRepository();
+				const mockMetadataRepository = createMockMetadataRepository();
+				const signalService = new SignalService(
+					mockRepository,
+					mockMetadataRepository
+				);
 
-			await vi.runAllTimersAsync();
-			const result = await resultPromise;
+				const taskId = "task-123";
+				vi.mocked(mockRepository.get).mockReturnValue(
+					createStoredSignal(taskId, "requirements", "failed", "Error")
+				);
 
-			expect(result.success).toBe(true);
-			expect(mockMetadataRepository.decrementStep).toHaveBeenCalledTimes(1);
-			expect(mockMetadataRepository.decrementStep).toHaveBeenCalledWith(taskId);
-			expect(mockMetadataRepository.incrementStep).not.toHaveBeenCalled();
-		});
+				const resultPromise = signalService.waitSignal({
+					taskId,
+					signalType: "requirements",
+					timeoutMs: 1000,
+					pollIntervalMs: 100,
+				});
 
-		it("should increment step once when ALL parallel signals are passed", async () => {
-			const taskId = "task-parallel-passed";
-			vi.mocked(mockRepository.get).mockImplementation(
-				(tid: string, type: ReportType) => {
-					if (tid === taskId) {
-						if (type === "performance") {
-							return createStoredSignal(tid, type, "passed", "Perf OK");
+				await vi.runAllTimersAsync();
+				const result = await resultPromise;
+
+				expect(result.success).toBe(true);
+				expect(mockMetadataRepository.decrementStep).toHaveBeenCalledWith(
+					taskId
+				);
+				expect(mockMetadataRepository.incrementStep).not.toHaveBeenCalled();
+			}
+		);
+
+		it.concurrent(
+			"should increment step once when ALL parallel signals are passed",
+			async () => {
+				const mockRepository = createMockSignalRepository();
+				const mockMetadataRepository = createMockMetadataRepository();
+				const signalService = new SignalService(
+					mockRepository,
+					mockMetadataRepository
+				);
+
+				const taskId = "task-parallel-passed";
+				vi.mocked(mockRepository.get).mockImplementation(
+					(tid: string, type: ReportType) => {
+						if (tid === taskId) {
+							if (type === "performance") {
+								return createStoredSignal(tid, type, "passed", "Perf OK");
+							}
+							if (type === "security") {
+								return createStoredSignal(tid, type, "passed", "Sec OK");
+							}
 						}
-						if (type === "security") {
-							return createStoredSignal(tid, type, "passed", "Sec OK");
-						}
+						return undefined;
 					}
-					return undefined;
-				}
-			);
+				);
 
-			const resultPromise = signalService.waitSignal({
-				taskId,
-				signalType: ["performance", "security"],
-				timeoutMs: 1000,
-				pollIntervalMs: 100,
-			});
+				const resultPromise = signalService.waitSignal({
+					taskId,
+					signalType: ["performance", "security"],
+					timeoutMs: 1000,
+					pollIntervalMs: 100,
+				});
 
-			await vi.runAllTimersAsync();
-			const result = await resultPromise;
+				await vi.runAllTimersAsync();
+				const result = await resultPromise;
 
-			expect(result.success).toBe(true);
-			expect(result.content).toHaveLength(2);
-			// Critical: should only increment ONCE for parallel steps
-			expect(mockMetadataRepository.incrementStep).toHaveBeenCalledTimes(1);
-			expect(mockMetadataRepository.incrementStep).toHaveBeenCalledWith(taskId);
-			expect(mockMetadataRepository.decrementStep).not.toHaveBeenCalled();
-		});
+				expect(result.success).toBe(true);
+				expect(result.content).toHaveLength(2);
+				// Critical: should only increment ONCE for parallel steps
+				expect(mockMetadataRepository.incrementStep).toHaveBeenCalledWith(
+					taskId
+				);
+				expect(mockMetadataRepository.decrementStep).not.toHaveBeenCalled();
+			}
+		);
 
-		it("should decrement step once when ANY parallel signal is failed", async () => {
-			const taskId = "task-parallel-mixed";
-			vi.mocked(mockRepository.get).mockImplementation(
-				(tid: string, type: ReportType) => {
-					if (tid === taskId) {
-						if (type === "performance") {
-							return createStoredSignal(tid, type, "passed", "Perf OK");
+		it.concurrent(
+			"should decrement step once when ANY parallel signal is failed",
+			async () => {
+				const mockRepository = createMockSignalRepository();
+				const mockMetadataRepository = createMockMetadataRepository();
+				const signalService = new SignalService(
+					mockRepository,
+					mockMetadataRepository
+				);
+
+				const taskId = "task-parallel-mixed";
+				vi.mocked(mockRepository.get).mockImplementation(
+					(tid: string, type: ReportType) => {
+						if (tid === taskId) {
+							if (type === "performance") {
+								return createStoredSignal(tid, type, "passed", "Perf OK");
+							}
+							if (type === "security") {
+								return createStoredSignal(tid, type, "failed", "Sec FAIL");
+							}
 						}
-						if (type === "security") {
-							return createStoredSignal(tid, type, "failed", "Sec FAIL");
-						}
+						return undefined;
 					}
-					return undefined;
-				}
-			);
+				);
 
-			const resultPromise = signalService.waitSignal({
-				taskId,
-				signalType: ["performance", "security"],
-				timeoutMs: 1000,
-				pollIntervalMs: 100,
-			});
+				const resultPromise = signalService.waitSignal({
+					taskId,
+					signalType: ["performance", "security"],
+					timeoutMs: 1000,
+					pollIntervalMs: 100,
+				});
 
-			await vi.runAllTimersAsync();
-			const result = await resultPromise;
+				await vi.runAllTimersAsync();
+				const result = await resultPromise;
 
-			expect(result.success).toBe(true);
-			expect(result.content).toHaveLength(2);
-			// Critical: should decrement ONCE when any signal fails
-			expect(mockMetadataRepository.decrementStep).toHaveBeenCalledTimes(1);
-			expect(mockMetadataRepository.decrementStep).toHaveBeenCalledWith(taskId);
-			expect(mockMetadataRepository.incrementStep).not.toHaveBeenCalled();
-		});
+				expect(result.success).toBe(true);
+				expect(result.content).toHaveLength(2);
+				// Critical: should decrement ONCE when any signal fails
+				expect(mockMetadataRepository.decrementStep).toHaveBeenCalledWith(
+					taskId
+				);
+				expect(mockMetadataRepository.incrementStep).not.toHaveBeenCalled();
+			}
+		);
 
-		it("should decrement step once when ALL parallel signals are failed", async () => {
-			const taskId = "task-parallel-all-failed";
-			vi.mocked(mockRepository.get).mockImplementation(
-				(tid: string, type: ReportType) => {
-					if (tid === taskId) {
-						if (type === "performance") {
-							return createStoredSignal(tid, type, "failed", "Perf FAIL");
+		it.concurrent(
+			"should decrement step once when ALL parallel signals are failed",
+			async () => {
+				const mockRepository = createMockSignalRepository();
+				const mockMetadataRepository = createMockMetadataRepository();
+				const signalService = new SignalService(
+					mockRepository,
+					mockMetadataRepository
+				);
+
+				const taskId = "task-parallel-all-failed";
+				vi.mocked(mockRepository.get).mockImplementation(
+					(tid: string, type: ReportType) => {
+						if (tid === taskId) {
+							if (type === "performance") {
+								return createStoredSignal(tid, type, "failed", "Perf FAIL");
+							}
+							if (type === "security") {
+								return createStoredSignal(tid, type, "failed", "Sec FAIL");
+							}
 						}
-						if (type === "security") {
-							return createStoredSignal(tid, type, "failed", "Sec FAIL");
-						}
+						return undefined;
 					}
-					return undefined;
-				}
+				);
+
+				const resultPromise = signalService.waitSignal({
+					taskId,
+					signalType: ["performance", "security"],
+					timeoutMs: 1000,
+					pollIntervalMs: 100,
+				});
+
+				await vi.runAllTimersAsync();
+				const result = await resultPromise;
+
+				expect(result.success).toBe(true);
+				// Critical: should decrement ONCE even if multiple signals failed
+				expect(mockMetadataRepository.incrementStep).not.toHaveBeenCalled();
+			}
+		);
+
+		it.concurrent("should not update metadata on timeout", async () => {
+			const mockRepository = createMockSignalRepository();
+			const mockMetadataRepository = createMockMetadataRepository();
+			const signalService = new SignalService(
+				mockRepository,
+				mockMetadataRepository
 			);
 
-			const resultPromise = signalService.waitSignal({
-				taskId,
-				signalType: ["performance", "security"],
-				timeoutMs: 1000,
-				pollIntervalMs: 100,
-			});
-
-			await vi.runAllTimersAsync();
-			const result = await resultPromise;
-
-			expect(result.success).toBe(true);
-			// Critical: should decrement ONCE even if multiple signals failed
-			expect(mockMetadataRepository.decrementStep).toHaveBeenCalledTimes(1);
-			expect(mockMetadataRepository.incrementStep).not.toHaveBeenCalled();
-		});
-
-		it("should not update metadata on timeout", async () => {
 			const taskId = "task-timeout";
 			vi.mocked(mockRepository.get).mockReturnValue(undefined);
 
@@ -219,55 +258,72 @@ describe("SignalService.waitSignal", () => {
 	});
 
 	describe("Signal Content Ordering", () => {
-		it("should return signals in request order, not discovery order", async () => {
-			const taskId = "task-order";
-			let callCount = 0;
+		it.concurrent(
+			"should return signals in request order, not discovery order",
+			async () => {
+				const mockRepository = createMockSignalRepository();
+				const mockMetadataRepository = createMockMetadataRepository();
+				const signalService = new SignalService(
+					mockRepository,
+					mockMetadataRepository
+				);
 
-			// Simulate security being found before performance
-			vi.mocked(mockRepository.get).mockImplementation(
-				(tid: string, type: ReportType) => {
-					if (tid !== taskId) return undefined;
+				const taskId = "task-order";
+				let callCount = 0;
 
-					if (type === "performance") {
-						// Performance found on 2nd poll
-						if (callCount >= 1) {
-							return createStoredSignal(tid, type, "passed", "Perf OK");
+				// Simulate security being found before performance
+				vi.mocked(mockRepository.get).mockImplementation(
+					(tid: string, type: ReportType) => {
+						if (tid !== taskId) return undefined;
+
+						if (type === "performance") {
+							// Performance found on 2nd poll
+							if (callCount >= 1) {
+								return createStoredSignal(tid, type, "passed", "Perf OK");
+							}
+							return undefined;
+						}
+						if (type === "security") {
+							// Security found immediately
+							return createStoredSignal(tid, type, "passed", "Sec OK");
 						}
 						return undefined;
 					}
-					if (type === "security") {
-						// Security found immediately
-						return createStoredSignal(tid, type, "passed", "Sec OK");
-					}
-					return undefined;
-				}
-			);
+				);
 
-			const resultPromise = signalService.waitSignal({
-				taskId,
-				signalType: ["performance", "security"],
-				timeoutMs: 5000,
-				pollIntervalMs: 100,
-			});
+				const resultPromise = signalService.waitSignal({
+					taskId,
+					signalType: ["performance", "security"],
+					timeoutMs: 5000,
+					pollIntervalMs: 100,
+				});
 
-			// First poll - only security found
-			await vi.advanceTimersByTimeAsync(100);
-			callCount = 1;
-			// Second poll - both found
-			await vi.advanceTimersByTimeAsync(100);
+				// First poll - only security found
+				await vi.advanceTimersByTimeAsync(100);
+				callCount = 1;
+				// Second poll - both found
+				await vi.advanceTimersByTimeAsync(100);
 
-			const result = await resultPromise;
+				const result = await resultPromise;
 
-			expect(result.success).toBe(true);
-			expect(result.content).toHaveLength(2);
-			// Order should match request order: [performance, security]
-			expect(result.content![0].summary).toBe("Perf OK");
-			expect(result.content![1].summary).toBe("Sec OK");
-		});
+				expect(result.success).toBe(true);
+				expect(result.content).toHaveLength(2);
+				// Order should match request order: [performance, security]
+				expect(result.content![0].summary).toBe("Perf OK");
+				expect(result.content![1].summary).toBe("Sec OK");
+			}
+		);
 	});
 
 	describe("Input Validation", () => {
-		it("should return error for empty taskId", async () => {
+		it.concurrent("should return error for empty taskId", async () => {
+			const mockRepository = createMockSignalRepository();
+			const mockMetadataRepository = createMockMetadataRepository();
+			const signalService = new SignalService(
+				mockRepository,
+				mockMetadataRepository
+			);
+
 			const result = await signalService.waitSignal({
 				taskId: "",
 				signalType: ReportType.REQUIREMENTS,
@@ -279,7 +335,14 @@ describe("SignalService.waitSignal", () => {
 			expect(result.error).toContain("taskId");
 		});
 
-		it("should return error for invalid signalType", async () => {
+		it.concurrent("should return error for invalid signalType", async () => {
+			const mockRepository = createMockSignalRepository();
+			const mockMetadataRepository = createMockMetadataRepository();
+			const signalService = new SignalService(
+				mockRepository,
+				mockMetadataRepository
+			);
+
 			const result = await signalService.waitSignal({
 				taskId: "task-123",
 				signalType: "invalid-type" as ReportType,
@@ -291,7 +354,14 @@ describe("SignalService.waitSignal", () => {
 			expect(result.error).toContain("signalType");
 		});
 
-		it("should accept array of signal types", async () => {
+		it.concurrent("should accept array of signal types", async () => {
+			const mockRepository = createMockSignalRepository();
+			const mockMetadataRepository = createMockMetadataRepository();
+			const signalService = new SignalService(
+				mockRepository,
+				mockMetadataRepository
+			);
+
 			vi.mocked(mockRepository.get).mockImplementation(
 				(tid: string, type: ReportType) => {
 					return createStoredSignal(tid, type, "passed", "OK");
@@ -314,28 +384,38 @@ describe("SignalService.waitSignal", () => {
 	});
 
 	describe("Deduplication", () => {
-		it("should deduplicate signal types while preserving order", async () => {
-			vi.mocked(mockRepository.get).mockImplementation(
-				(tid: string, type: ReportType) => {
-					return createStoredSignal(tid, type, "passed", `${type} OK`);
-				}
-			);
+		it.concurrent(
+			"should deduplicate signal types while preserving order",
+			async () => {
+				const mockRepository = createMockSignalRepository();
+				const mockMetadataRepository = createMockMetadataRepository();
+				const signalService = new SignalService(
+					mockRepository,
+					mockMetadataRepository
+				);
 
-			const resultPromise = signalService.waitSignal({
-				taskId: "task-123",
-				signalType: ["performance", "security", "performance"],
-				timeoutMs: 1000,
-				pollIntervalMs: 100,
-			});
+				vi.mocked(mockRepository.get).mockImplementation(
+					(tid: string, type: ReportType) => {
+						return createStoredSignal(tid, type, "passed", `${type} OK`);
+					}
+				);
 
-			await vi.runAllTimersAsync();
-			const result = await resultPromise;
+				const resultPromise = signalService.waitSignal({
+					taskId: "task-123",
+					signalType: ["performance", "security", "performance"],
+					timeoutMs: 1000,
+					pollIntervalMs: 100,
+				});
 
-			expect(result.success).toBe(true);
-			// Should deduplicate to 2 signals
-			expect(result.content).toHaveLength(2);
-			expect(result.content![0].summary).toBe("performance OK");
-			expect(result.content![1].summary).toBe("security OK");
-		});
+				await vi.runAllTimersAsync();
+				const result = await resultPromise;
+
+				expect(result.success).toBe(true);
+				// Should deduplicate to 2 signals
+				expect(result.content).toHaveLength(2);
+				expect(result.content![0].summary).toBe("performance OK");
+				expect(result.content![1].summary).toBe("security OK");
+			}
+		);
 	});
 });

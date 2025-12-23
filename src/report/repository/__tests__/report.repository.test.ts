@@ -18,26 +18,32 @@ describe("ReportRepository", () => {
 	});
 
 	describe("save", () => {
-		it("should save report to database with auto-generated timestamp", () => {
-			repository.save("task-123", "requirements", "Test content");
+		it.concurrent(
+			"should save report to database with auto-generated timestamp",
+			() => {
+				repository.save("task-123", "requirements", "Test content");
 
-			const retrieved = repository.get("task-123", "requirements");
-			expect(retrieved).toBeDefined();
-			expect(retrieved?.taskId).toBe("task-123");
-			expect(retrieved?.reportType).toBe("requirements");
-			expect(retrieved?.content).toBe("Test content");
-			expect(retrieved?.savedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/); // ISO timestamp
-		});
+				const retrieved = repository.get("task-123", "requirements");
+				expect(retrieved).toBeDefined();
+				expect(retrieved?.taskId).toBe("task-123");
+				expect(retrieved?.reportType).toBe("requirements");
+				expect(retrieved?.content).toBe("Test content");
+				expect(retrieved?.savedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/); // ISO timestamp
+			}
+		);
 
-		it("should overwrite existing report with same key (upsert)", () => {
-			repository.save("task-123", "requirements", "Original content");
-			repository.save("task-123", "requirements", "Updated content");
+		it.concurrent(
+			"should overwrite existing report with same key (upsert)",
+			() => {
+				repository.save("task-123", "requirements", "Original content");
+				repository.save("task-123", "requirements", "Updated content");
 
-			const retrieved = repository.get("task-123", "requirements");
-			expect(retrieved?.content).toBe("Updated content");
-		});
+				const retrieved = repository.get("task-123", "requirements");
+				expect(retrieved?.content).toBe("Updated content");
+			}
+		);
 
-		it("should allow same taskId with different reportTypes", () => {
+		it.concurrent("should allow same taskId with different reportTypes", () => {
 			repository.save("task-123", "requirements", "Requirements content");
 			repository.save("task-123", "plan", "Plan content");
 
@@ -47,7 +53,7 @@ describe("ReportRepository", () => {
 			expect(retrieved2?.content).toBe("Plan content");
 		});
 
-		it("should save reports with all 12 report types", () => {
+		it.concurrent("should save reports with all 12 report types", () => {
 			REPORT_TYPES.forEach((reportType) => {
 				repository.save("task-123", reportType, `Content for ${reportType}`);
 			});
@@ -58,14 +64,14 @@ describe("ReportRepository", () => {
 			});
 		});
 
-		it("should handle empty content string", () => {
+		it.concurrent("should handle empty content string", () => {
 			repository.save("task-123", "requirements", "");
 
 			const retrieved = repository.get("task-123", "requirements");
 			expect(retrieved?.content).toBe("");
 		});
 
-		it("should handle large content", () => {
+		it.concurrent("should handle large content", () => {
 			const largeContent = "x".repeat(1000000); // 1MB of content
 			repository.save("task-123", "requirements", largeContent);
 
@@ -74,7 +80,7 @@ describe("ReportRepository", () => {
 			expect(retrieved?.content.length).toBe(1000000);
 		});
 
-		it("should handle special characters in content", () => {
+		it.concurrent("should handle special characters in content", () => {
 			const specialContent =
 				"Content with unicode: \u0000\u0001\u0002 and emojis: \u{1F600}\nNew lines\tand\ttabs";
 			repository.save("task-123", "requirements", specialContent);
@@ -83,7 +89,7 @@ describe("ReportRepository", () => {
 			expect(retrieved?.content).toBe(specialContent);
 		});
 
-		it("should handle markdown content with code blocks", () => {
+		it.concurrent("should handle markdown content with code blocks", () => {
 			const markdownContent = `# Report Title
 
 ## Section 1
@@ -104,7 +110,7 @@ function hello() {
 			expect(retrieved?.content).toBe(markdownContent);
 		});
 
-		it("should handle JSON-like content in string", () => {
+		it.concurrent("should handle JSON-like content in string", () => {
 			const jsonContent = JSON.stringify({
 				key: "value",
 				nested: { arr: [1, 2, 3] },
@@ -117,7 +123,7 @@ function hello() {
 	});
 
 	describe("get", () => {
-		it("should return stored report when found", () => {
+		it.concurrent("should return stored report when found", () => {
 			repository.save("task-123", "requirements", "Test content");
 
 			const retrieved = repository.get("task-123", "requirements");
@@ -128,35 +134,41 @@ function hello() {
 			expect(retrieved?.content).toBe("Test content");
 		});
 
-		it("should return undefined when report not found", () => {
+		it.concurrent("should return undefined when report not found", () => {
 			const retrieved = repository.get("nonexistent-task", "requirements");
 
 			expect(retrieved).toBeUndefined();
 		});
 
-		it("should return undefined when taskId exists but reportType does not", () => {
-			repository.save("task-123", "requirements", "Test content");
+		it.concurrent(
+			"should return undefined when taskId exists but reportType does not",
+			() => {
+				repository.save("task-123", "requirements", "Test content");
 
-			const retrieved = repository.get("task-123", "plan");
+				const retrieved = repository.get("task-123", "plan");
 
-			expect(retrieved).toBeUndefined();
-		});
+				expect(retrieved).toBeUndefined();
+			}
+		);
 
-		it("should return correct report when multiple reports exist", () => {
-			repository.save("task-1", "requirements", "Content 1");
-			repository.save("task-1", "plan", "Content 2");
-			repository.save("task-2", "requirements", "Content 3");
+		it.concurrent(
+			"should return correct report when multiple reports exist",
+			() => {
+				repository.save("task-1", "requirements", "Content 1");
+				repository.save("task-1", "plan", "Content 2");
+				repository.save("task-2", "requirements", "Content 3");
 
-			expect(repository.get("task-1", "requirements")?.content).toBe(
-				"Content 1"
-			);
-			expect(repository.get("task-1", "plan")?.content).toBe("Content 2");
-			expect(repository.get("task-2", "requirements")?.content).toBe(
-				"Content 3"
-			);
-		});
+				expect(repository.get("task-1", "requirements")?.content).toBe(
+					"Content 1"
+				);
+				expect(repository.get("task-1", "plan")?.content).toBe("Content 2");
+				expect(repository.get("task-2", "requirements")?.content).toBe(
+					"Content 3"
+				);
+			}
+		);
 
-		it("should accept all 12 valid report types", () => {
+		it.concurrent("should accept all 12 valid report types", () => {
 			REPORT_TYPES.forEach((reportType) => {
 				repository.save("task-1", reportType, `Content for ${reportType}`);
 
@@ -167,7 +179,7 @@ function hello() {
 	});
 
 	describe("clear", () => {
-		it("should remove all reports from repository", () => {
+		it.concurrent("should remove all reports from repository", () => {
 			repository.save("task-1", "requirements", "Content 1");
 			repository.save("task-2", "plan", "Content 2");
 
@@ -177,7 +189,7 @@ function hello() {
 			expect(repository.get("task-2", "plan")).toBeUndefined();
 		});
 
-		it("should allow save after clear", () => {
+		it.concurrent("should allow save after clear", () => {
 			repository.save("task-1", "requirements", "Content");
 			repository.clear();
 
@@ -186,11 +198,11 @@ function hello() {
 			expect(repository.get("task-2", "plan")?.content).toBe("New content");
 		});
 
-		it("should not throw when clearing empty repository", () => {
+		it.concurrent("should not throw when clearing empty repository", () => {
 			expect(() => repository.clear()).not.toThrow();
 		});
 
-		it("should be callable multiple times", () => {
+		it.concurrent("should be callable multiple times", () => {
 			repository.save("task-1", "requirements", "Content");
 
 			expect(() => {
@@ -201,14 +213,14 @@ function hello() {
 	});
 
 	describe("Edge Cases", () => {
-		it("should handle taskId with colons", () => {
+		it.concurrent("should handle taskId with colons", () => {
 			repository.save("task:with:colons", "requirements", "Content");
 
 			const retrieved = repository.get("task:with:colons", "requirements");
 			expect(retrieved?.content).toBe("Content");
 		});
 
-		it("should handle very long taskId", () => {
+		it.concurrent("should handle very long taskId", () => {
 			const longTaskId = "task-" + "a".repeat(500);
 			repository.save(longTaskId, "requirements", "Content");
 
@@ -216,7 +228,7 @@ function hello() {
 			expect(retrieved?.content).toBe("Content");
 		});
 
-		it("should generate ISO timestamp for savedAt", () => {
+		it.concurrent("should generate ISO timestamp for savedAt", () => {
 			repository.save("task-1", "requirements", "Content");
 
 			const retrieved = repository.get("task-1", "requirements");

@@ -3,8 +3,8 @@ import { ReportType } from "../../types/report.type";
 import { SaveSignalInput } from "../schemas/save-signal.schema";
 import { SignalService } from "../signal.service";
 import { SIGNAL_STATUSES, SignalStatus } from "../types/signal-status.type";
-import { ISignalRepository } from "../types/signal.repository.interface";
-import { IMetadataRepository } from "../../metadata/types/metadata.repository.interface";
+import { createMockSignalRepository } from "../repository/__mocks__/signal.repository.mock";
+import { createMockMetadataRepository } from "../../metadata/repository/__mocks__/metadata.repository.mock";
 
 /**
  * Test-only type that allows any string for signalType to test validation.
@@ -17,21 +17,9 @@ type TestSaveSignalInput = Omit<SaveSignalInput, "signalType" | "content"> & {
 	};
 };
 
-// Create mock repository
-const mockRepository: ISignalRepository = {
-	save: vi.fn(),
-	get: vi.fn(),
-	clear: vi.fn(),
-};
-
-// Create mock metadata repository
-const mockMetadataRepository: IMetadataRepository = {
-	create: vi.fn(),
-	get: vi.fn(),
-	incrementStep: vi.fn(),
-	decrementStep: vi.fn(),
-	clear: vi.fn(),
-};
+// Create mock repositories
+const mockRepository = createMockSignalRepository();
+const mockMetadataRepository = createMockMetadataRepository();
 
 // Create service with mock repositories
 const signalService = new SignalService(mockRepository, mockMetadataRepository);

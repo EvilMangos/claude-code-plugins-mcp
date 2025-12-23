@@ -3,7 +3,7 @@ import { ReportService } from "../report.service";
 import { ReportType } from "../../types/report.type";
 import { GetReportInput } from "../schemas/get-report.schema";
 import type { IStoredReport } from "../types/stored-report.interface";
-import { IReportRepository } from "../types/report.repository.interface";
+import { createMockReportRepository } from "../repository/__mocks__/report.repository.mock";
 
 /**
  * Test-only type that allows any string for reportType to test validation.
@@ -13,11 +13,7 @@ type TestGetReportInput = Omit<GetReportInput, "reportType"> & {
 };
 
 // Create mock repository
-const mockRepository: IReportRepository = {
-	save: vi.fn(),
-	get: vi.fn(),
-	clear: vi.fn(),
-};
+const mockRepository = createMockReportRepository();
 
 // Create service with mock repository
 const reportService = new ReportService(mockRepository);
