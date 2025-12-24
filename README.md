@@ -6,6 +6,10 @@ MCP (Model Context Protocol) server for Claude Code plugins workflow data storag
 
 This server provides tools for storing and retrieving workflow reports and signals during Claude Code plugin execution. It enables plugins to persist state across different workflow steps such as requirements gathering, planning, implementation, testing, and code review.
 
+## Related Projects
+
+This MCP server is designed to work with [claude-code-plugins](https://github.com/EvilMangos/claude-code-plugins) - a collection of workflow plugins for Claude Code that use this server for state persistence.
+
 ## Installation
 
 ```bash
@@ -24,7 +28,7 @@ Add this server to your Claude Code MCP configuration:
   "mcpServers": {
     "claude-code-plugins-mcp": {
       "command": "node",
-      "args": ["/path/to/claude-code-plugins-mcp/dist/index.js"]
+      "args": ["@evil-mango/claude-code-plugins-mcp"]
     }
   }
 }
