@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { REPORT_TYPES } from "../../../types/report.type";
+import { REPORT_TYPES, ReportType } from "../../../types/report.type";
 import type { SignalContent } from "../../schemas/signal-content.schema";
 import { SignalRepository } from "../signal.repository";
 import { SqliteDatabase } from "../../../storage/sqlite-database";
@@ -25,12 +25,12 @@ describe("SignalRepository", () => {
 				status: SignalStatus.PASSED,
 				summary: "All requirements met",
 			};
-			repository.save("task-123", "requirements", content);
+			repository.save("task-123", ReportType.REQUIREMENTS, content);
 
-			const retrieved = repository.get("task-123", "requirements");
+			const retrieved = repository.get("task-123", ReportType.REQUIREMENTS);
 			expect(retrieved).toBeDefined();
 			expect(retrieved?.taskId).toBe("task-123");
-			expect(retrieved?.signalType).toBe("requirements");
+			expect(retrieved?.signalType).toBe(ReportType.REQUIREMENTS);
 			expect(retrieved?.content).toEqual(content);
 			expect(retrieved?.savedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/); // ISO timestamp
 		});
@@ -47,10 +47,10 @@ describe("SignalRepository", () => {
 					summary: "Updated summary",
 				};
 
-				repository.save("task-123", "requirements", content1);
-				repository.save("task-123", "requirements", content2);
+				repository.save("task-123", ReportType.REQUIREMENTS, content1);
+				repository.save("task-123", ReportType.REQUIREMENTS, content2);
 
-				const retrieved = repository.get("task-123", "requirements");
+				const retrieved = repository.get("task-123", ReportType.REQUIREMENTS);
 				expect(retrieved?.content).toEqual(content2);
 			}
 		);
@@ -65,11 +65,11 @@ describe("SignalRepository", () => {
 				summary: "Plan passed",
 			};
 
-			repository.save("task-123", "requirements", content1);
-			repository.save("task-123", "plan", content2);
+			repository.save("task-123", ReportType.REQUIREMENTS, content1);
+			repository.save("task-123", ReportType.PLAN, content2);
 
-			const retrieved1 = repository.get("task-123", "requirements");
-			const retrieved2 = repository.get("task-123", "plan");
+			const retrieved1 = repository.get("task-123", ReportType.REQUIREMENTS);
+			const retrieved2 = repository.get("task-123", ReportType.PLAN);
 			expect(retrieved1?.content).toEqual(content1);
 			expect(retrieved2?.content).toEqual(content2);
 		});
@@ -79,9 +79,9 @@ describe("SignalRepository", () => {
 				status: SignalStatus.PASSED,
 				summary: "Test passed",
 			};
-			repository.save("task-123", "requirements", content);
+			repository.save("task-123", ReportType.REQUIREMENTS, content);
 
-			const retrieved = repository.get("task-123", "requirements");
+			const retrieved = repository.get("task-123", ReportType.REQUIREMENTS);
 			expect(retrieved?.content.status).toBe(SignalStatus.PASSED);
 		});
 
@@ -90,9 +90,9 @@ describe("SignalRepository", () => {
 				status: SignalStatus.FAILED,
 				summary: "Test failed",
 			};
-			repository.save("task-123", "requirements", content);
+			repository.save("task-123", ReportType.REQUIREMENTS, content);
 
-			const retrieved = repository.get("task-123", "requirements");
+			const retrieved = repository.get("task-123", ReportType.REQUIREMENTS);
 			expect(retrieved?.content.status).toBe(SignalStatus.FAILED);
 		});
 
@@ -104,9 +104,9 @@ describe("SignalRepository", () => {
 				summary: specialSummary,
 			};
 
-			repository.save("task-123", "requirements", content);
+			repository.save("task-123", ReportType.REQUIREMENTS, content);
 
-			const retrieved = repository.get("task-123", "requirements");
+			const retrieved = repository.get("task-123", ReportType.REQUIREMENTS);
 			expect(retrieved?.content.summary).toBe(specialSummary);
 		});
 
@@ -115,9 +115,9 @@ describe("SignalRepository", () => {
 				status: SignalStatus.PASSED,
 				summary: "",
 			};
-			repository.save("task-123", "requirements", content);
+			repository.save("task-123", ReportType.REQUIREMENTS, content);
 
-			const retrieved = repository.get("task-123", "requirements");
+			const retrieved = repository.get("task-123", ReportType.REQUIREMENTS);
 			expect(retrieved?.content.summary).toBe("");
 		});
 
@@ -128,9 +128,9 @@ describe("SignalRepository", () => {
 				summary: largeSummary,
 			};
 
-			repository.save("task-123", "requirements", content);
+			repository.save("task-123", ReportType.REQUIREMENTS, content);
 
-			const retrieved = repository.get("task-123", "requirements");
+			const retrieved = repository.get("task-123", ReportType.REQUIREMENTS);
 			expect(retrieved?.content.summary).toBe(largeSummary);
 			expect(retrieved?.content.summary.length).toBe(100000);
 		});
@@ -162,9 +162,9 @@ describe("SignalRepository", () => {
 					status: SignalStatus.PASSED,
 					summary: "Test summary",
 				};
-				repository.save("task-123", "requirements", content);
+				repository.save("task-123", ReportType.REQUIREMENTS, content);
 
-				const retrieved = repository.get("task-123", "requirements");
+				const retrieved = repository.get("task-123", ReportType.REQUIREMENTS);
 
 				expect(retrieved?.content).toEqual(content);
 				expect(retrieved?.content.status).toBe(SignalStatus.PASSED);
@@ -173,7 +173,10 @@ describe("SignalRepository", () => {
 		);
 
 		it.concurrent("should return undefined when signal not found", () => {
-			const retrieved = repository.get("nonexistent-task", "requirements");
+			const retrieved = repository.get(
+				"nonexistent-task",
+				ReportType.REQUIREMENTS
+			);
 
 			expect(retrieved).toBeUndefined();
 		});
@@ -185,9 +188,9 @@ describe("SignalRepository", () => {
 					status: SignalStatus.PASSED,
 					summary: "Test",
 				};
-				repository.save("task-123", "requirements", content);
+				repository.save("task-123", ReportType.REQUIREMENTS, content);
 
-				const retrieved = repository.get("task-123", "plan");
+				const retrieved = repository.get("task-123", ReportType.PLAN);
 
 				expect(retrieved).toBeUndefined();
 			}
@@ -196,26 +199,28 @@ describe("SignalRepository", () => {
 		it.concurrent(
 			"should return correct signal when multiple signals exist",
 			() => {
-				repository.save("task-1", "requirements", {
+				repository.save("task-1", ReportType.REQUIREMENTS, {
 					status: SignalStatus.PASSED,
 					summary: "S1",
 				});
-				repository.save("task-1", "plan", {
+				repository.save("task-1", ReportType.PLAN, {
 					status: SignalStatus.FAILED,
 					summary: "S2",
 				});
-				repository.save("task-2", "requirements", {
+				repository.save("task-2", ReportType.REQUIREMENTS, {
 					status: SignalStatus.PASSED,
 					summary: "S3",
 				});
 
-				expect(repository.get("task-1", "requirements")?.content.summary).toBe(
-					"S1"
+				expect(
+					repository.get("task-1", ReportType.REQUIREMENTS)?.content.summary
+				).toBe("S1");
+				expect(repository.get("task-1", ReportType.PLAN)?.content.summary).toBe(
+					"S2"
 				);
-				expect(repository.get("task-1", "plan")?.content.summary).toBe("S2");
-				expect(repository.get("task-2", "requirements")?.content.summary).toBe(
-					"S3"
-				);
+				expect(
+					repository.get("task-2", ReportType.REQUIREMENTS)?.content.summary
+				).toBe("S3");
 			}
 		);
 
@@ -235,34 +240,36 @@ describe("SignalRepository", () => {
 
 	describe("clear", () => {
 		it.concurrent("should remove all signals from repository", () => {
-			repository.save("task-1", "requirements", {
+			repository.save("task-1", ReportType.REQUIREMENTS, {
 				status: SignalStatus.PASSED,
 				summary: "S1",
 			});
-			repository.save("task-2", "plan", {
+			repository.save("task-2", ReportType.PLAN, {
 				status: SignalStatus.FAILED,
 				summary: "S2",
 			});
 
 			repository.clear();
 
-			expect(repository.get("task-1", "requirements")).toBeUndefined();
-			expect(repository.get("task-2", "plan")).toBeUndefined();
+			expect(repository.get("task-1", ReportType.REQUIREMENTS)).toBeUndefined();
+			expect(repository.get("task-2", ReportType.PLAN)).toBeUndefined();
 		});
 
 		it.concurrent("should allow save after clear", () => {
-			repository.save("task-1", "requirements", {
+			repository.save("task-1", ReportType.REQUIREMENTS, {
 				status: SignalStatus.PASSED,
 				summary: "S1",
 			});
 			repository.clear();
 
-			repository.save("task-2", "plan", {
+			repository.save("task-2", ReportType.PLAN, {
 				status: SignalStatus.FAILED,
 				summary: "S2",
 			});
 
-			expect(repository.get("task-2", "plan")?.content.summary).toBe("S2");
+			expect(repository.get("task-2", ReportType.PLAN)?.content.summary).toBe(
+				"S2"
+			);
 		});
 	});
 
@@ -272,9 +279,9 @@ describe("SignalRepository", () => {
 				status: SignalStatus.PASSED,
 				summary: "Test summary",
 			};
-			repository.save("task-123", "requirements", content);
+			repository.save("task-123", ReportType.REQUIREMENTS, content);
 
-			const retrieved = repository.get("task-123", "requirements");
+			const retrieved = repository.get("task-123", ReportType.REQUIREMENTS);
 			expect(typeof retrieved?.content).toBe("object");
 			expect(retrieved?.content.status).toBe(SignalStatus.PASSED);
 			expect(retrieved?.content.summary).toBe("Test summary");
@@ -285,9 +292,9 @@ describe("SignalRepository", () => {
 				status: SignalStatus.FAILED,
 				summary: "Detailed failure summary with special chars: <>\"'&",
 			};
-			repository.save("task-123", "requirements", originalContent);
+			repository.save("task-123", ReportType.REQUIREMENTS, originalContent);
 
-			const retrieved = repository.get("task-123", "requirements");
+			const retrieved = repository.get("task-123", ReportType.REQUIREMENTS);
 			expect(retrieved?.content).toEqual(originalContent);
 		});
 	});
@@ -298,9 +305,12 @@ describe("SignalRepository", () => {
 				status: SignalStatus.PASSED,
 				summary: "Test",
 			};
-			repository.save("task:with:colons", "requirements", content);
+			repository.save("task:with:colons", ReportType.REQUIREMENTS, content);
 
-			const retrieved = repository.get("task:with:colons", "requirements");
+			const retrieved = repository.get(
+				"task:with:colons",
+				ReportType.REQUIREMENTS
+			);
 			expect(retrieved?.content).toEqual(content);
 		});
 
@@ -311,9 +321,9 @@ describe("SignalRepository", () => {
 				summary: "Test",
 			};
 
-			repository.save(longTaskId, "requirements", content);
+			repository.save(longTaskId, ReportType.REQUIREMENTS, content);
 
-			const retrieved = repository.get(longTaskId, "requirements");
+			const retrieved = repository.get(longTaskId, ReportType.REQUIREMENTS);
 			expect(retrieved?.content).toEqual(content);
 		});
 
@@ -322,9 +332,9 @@ describe("SignalRepository", () => {
 				status: SignalStatus.PASSED,
 				summary: "Test",
 			};
-			repository.save("task-1", "requirements", content);
+			repository.save("task-1", ReportType.REQUIREMENTS, content);
 
-			const retrieved = repository.get("task-1", "requirements");
+			const retrieved = repository.get("task-1", ReportType.REQUIREMENTS);
 			// Check it's a valid ISO timestamp
 			expect(retrieved?.savedAt).toMatch(
 				/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/

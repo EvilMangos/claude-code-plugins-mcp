@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { ExecutionStep } from "../../../types/execution-step.type";
-import type { ReportType } from "../../../types/report.type";
+import { ReportType } from "../../../types/report.type";
 import type { StoredMetadata } from "../../types/stored-metadata.interface";
 import { MetadataRepository } from "../metadata.repository";
 import { SqliteDatabase } from "../../../storage/sqlite-database";
@@ -25,7 +25,11 @@ describe("MetadataRepository", () => {
 				taskId: "task-123",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
-				executionSteps: ["requirements", "plan", "implementation"],
+				executionSteps: [
+					ReportType.REQUIREMENTS,
+					ReportType.PLAN,
+					ReportType.IMPLEMENTATION,
+				],
 				currentStepIndex: 0,
 			};
 
@@ -42,14 +46,14 @@ describe("MetadataRepository", () => {
 					taskId: "task-123",
 					startedAt: "2025-01-15T10:00:00.000Z",
 					savedAt: "2025-01-15T10:30:00.000Z",
-					executionSteps: ["requirements"],
+					executionSteps: [ReportType.REQUIREMENTS],
 					currentStepIndex: 0,
 				};
 				const metadata2: StoredMetadata = {
 					taskId: "task-123",
 					startedAt: "2025-01-15T10:00:00.000Z",
 					savedAt: "2025-01-15T11:30:00.000Z",
-					executionSteps: ["requirements", "plan"],
+					executionSteps: [ReportType.REQUIREMENTS, ReportType.PLAN],
 					currentStepIndex: 1,
 				};
 
@@ -66,14 +70,14 @@ describe("MetadataRepository", () => {
 				taskId: "task-1",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
-				executionSteps: ["requirements"],
+				executionSteps: [ReportType.REQUIREMENTS],
 				currentStepIndex: 0,
 			};
 			const metadata2: StoredMetadata = {
 				taskId: "task-2",
 				startedAt: "2025-01-15T11:00:00.000Z",
 				savedAt: "2025-01-15T11:30:00.000Z",
-				executionSteps: ["plan"],
+				executionSteps: [ReportType.PLAN],
 				currentStepIndex: 0,
 			};
 
@@ -86,18 +90,18 @@ describe("MetadataRepository", () => {
 
 		it.concurrent("should serialize executionSteps array to JSON", () => {
 			const executionSteps: ExecutionStep[] = [
-				"requirements",
-				"plan",
-				"tests-design",
-				"tests-review",
-				"implementation",
-				"stabilization",
-				"acceptance",
-				"performance",
-				"security",
-				"refactoring",
-				"code-review",
-				"documentation",
+				ReportType.REQUIREMENTS,
+				ReportType.PLAN,
+				ReportType.TESTS_DESIGN,
+				ReportType.TESTS_REVIEW,
+				ReportType.IMPLEMENTATION,
+				ReportType.STABILIZATION,
+				ReportType.ACCEPTANCE,
+				ReportType.PERFORMANCE,
+				ReportType.SECURITY,
+				ReportType.REFACTORING,
+				ReportType.CODE_REVIEW,
+				ReportType.DOCUMENTATION,
 			];
 			const metadata: StoredMetadata = {
 				taskId: "task-123",
@@ -118,12 +122,12 @@ describe("MetadataRepository", () => {
 			"should serialize nested arrays (parallel steps) to JSON",
 			() => {
 				const executionSteps: ExecutionStep[] = [
-					"requirements",
-					"plan",
-					["tests-design", "tests-review"],
-					"implementation",
-					["performance", "security"],
-					"documentation",
+					ReportType.REQUIREMENTS,
+					ReportType.PLAN,
+					[ReportType.TESTS_DESIGN, ReportType.TESTS_REVIEW],
+					ReportType.IMPLEMENTATION,
+					[ReportType.PERFORMANCE, ReportType.SECURITY],
+					ReportType.DOCUMENTATION,
 				];
 				const metadata: StoredMetadata = {
 					taskId: "task-123",
@@ -139,8 +143,8 @@ describe("MetadataRepository", () => {
 				expect(retrieved?.executionSteps).toEqual(executionSteps);
 				expect(Array.isArray(retrieved?.executionSteps[2])).toBe(true);
 				expect(retrieved?.executionSteps[2]).toEqual([
-					"tests-design",
-					"tests-review",
+					ReportType.TESTS_DESIGN,
+					ReportType.TESTS_REVIEW,
 				]);
 			}
 		);
@@ -150,7 +154,7 @@ describe("MetadataRepository", () => {
 				taskId: "task-123",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
-				executionSteps: ["requirements"],
+				executionSteps: [ReportType.REQUIREMENTS],
 				currentStepIndex: 0,
 			};
 
@@ -166,7 +170,7 @@ describe("MetadataRepository", () => {
 				startedAt: "2025-01-15T10:00:00.000Z",
 				completedAt: "2025-01-15T12:00:00.000Z",
 				savedAt: "2025-01-15T12:00:00.000Z",
-				executionSteps: ["requirements"],
+				executionSteps: [ReportType.REQUIREMENTS],
 				currentStepIndex: 0,
 			};
 
@@ -199,7 +203,7 @@ describe("MetadataRepository", () => {
 					taskId: `task-${index}`,
 					startedAt: "2025-01-15T10:00:00.000Z",
 					savedAt: "2025-01-15T10:30:00.000Z",
-					executionSteps: ["requirements", "plan"],
+					executionSteps: [ReportType.REQUIREMENTS, ReportType.PLAN],
 					currentStepIndex: index,
 				};
 
@@ -217,7 +221,7 @@ describe("MetadataRepository", () => {
 				taskId: "task-123",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
-				executionSteps: ["requirements", "plan"],
+				executionSteps: [ReportType.REQUIREMENTS, ReportType.PLAN],
 				currentStepIndex: 1,
 			};
 			repository["save"](metadata);
@@ -235,9 +239,9 @@ describe("MetadataRepository", () => {
 
 		it.concurrent("should deserialize JSON back to ExecutionStep array", () => {
 			const executionSteps: ExecutionStep[] = [
-				"requirements",
-				["plan", "tests-design"],
-				"implementation",
+				ReportType.REQUIREMENTS,
+				[ReportType.PLAN, ReportType.TESTS_DESIGN],
+				ReportType.IMPLEMENTATION,
 			];
 			const metadata: StoredMetadata = {
 				taskId: "task-123",
@@ -262,21 +266,21 @@ describe("MetadataRepository", () => {
 						taskId: "task-1",
 						startedAt: "2025-01-15T10:00:00.000Z",
 						savedAt: "2025-01-15T10:30:00.000Z",
-						executionSteps: ["requirements"],
+						executionSteps: [ReportType.REQUIREMENTS],
 						currentStepIndex: 0,
 					},
 					{
 						taskId: "task-2",
 						startedAt: "2025-01-15T11:00:00.000Z",
 						savedAt: "2025-01-15T11:30:00.000Z",
-						executionSteps: ["plan"],
+						executionSteps: [ReportType.PLAN],
 						currentStepIndex: 0,
 					},
 					{
 						taskId: "task-3",
 						startedAt: "2025-01-15T12:00:00.000Z",
 						savedAt: "2025-01-15T12:30:00.000Z",
-						executionSteps: ["implementation"],
+						executionSteps: [ReportType.IMPLEMENTATION],
 						currentStepIndex: 0,
 					},
 				];
@@ -296,14 +300,14 @@ describe("MetadataRepository", () => {
 					taskId: "task-1",
 					startedAt: "2025-01-15T10:00:00.000Z",
 					savedAt: "2025-01-15T10:30:00.000Z",
-					executionSteps: ["requirements"],
+					executionSteps: [ReportType.REQUIREMENTS],
 					currentStepIndex: 0,
 				},
 				{
 					taskId: "task-2",
 					startedAt: "2025-01-15T11:00:00.000Z",
 					savedAt: "2025-01-15T11:30:00.000Z",
-					executionSteps: ["plan"],
+					executionSteps: [ReportType.PLAN],
 					currentStepIndex: 0,
 				},
 			];
@@ -320,7 +324,7 @@ describe("MetadataRepository", () => {
 				taskId: "task-1",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
-				executionSteps: ["requirements"],
+				executionSteps: [ReportType.REQUIREMENTS],
 				currentStepIndex: 0,
 			};
 			repository["save"](metadata);
@@ -330,7 +334,7 @@ describe("MetadataRepository", () => {
 				taskId: "task-2",
 				startedAt: "2025-01-15T11:00:00.000Z",
 				savedAt: "2025-01-15T11:30:00.000Z",
-				executionSteps: ["plan"],
+				executionSteps: [ReportType.PLAN],
 				currentStepIndex: 0,
 			};
 			repository["save"](newMetadata);
@@ -344,9 +348,9 @@ describe("MetadataRepository", () => {
 			"should correctly serialize and deserialize simple ExecutionStep array",
 			() => {
 				const executionSteps: ExecutionStep[] = [
-					"requirements",
-					"plan",
-					"implementation",
+					ReportType.REQUIREMENTS,
+					ReportType.PLAN,
+					ReportType.IMPLEMENTATION,
 				];
 				const metadata: StoredMetadata = {
 					taskId: "task-123",
@@ -367,11 +371,11 @@ describe("MetadataRepository", () => {
 			"should correctly serialize and deserialize nested ExecutionStep array",
 			() => {
 				const executionSteps: ExecutionStep[] = [
-					"requirements",
-					["plan", "tests-design"],
-					"implementation",
-					["performance", "security", "code-review"],
-					"documentation",
+					ReportType.REQUIREMENTS,
+					[ReportType.PLAN, ReportType.TESTS_DESIGN],
+					ReportType.IMPLEMENTATION,
+					[ReportType.PERFORMANCE, ReportType.SECURITY, ReportType.CODE_REVIEW],
+					ReportType.DOCUMENTATION,
 				];
 				const metadata: StoredMetadata = {
 					taskId: "task-123",
@@ -393,19 +397,19 @@ describe("MetadataRepository", () => {
 		it.concurrent(
 			"should preserve all 12 report types in execution steps",
 			() => {
-				const allReportTypes: ReportType[] = [
-					"requirements",
-					"plan",
-					"tests-design",
-					"tests-review",
-					"implementation",
-					"stabilization",
-					"acceptance",
-					"performance",
-					"security",
-					"refactoring",
-					"code-review",
-					"documentation",
+				const allReportTypes = [
+					ReportType.REQUIREMENTS,
+					ReportType.PLAN,
+					ReportType.TESTS_DESIGN,
+					ReportType.TESTS_REVIEW,
+					ReportType.IMPLEMENTATION,
+					ReportType.STABILIZATION,
+					ReportType.ACCEPTANCE,
+					ReportType.PERFORMANCE,
+					ReportType.SECURITY,
+					ReportType.REFACTORING,
+					ReportType.CODE_REVIEW,
+					ReportType.DOCUMENTATION,
 				];
 				const metadata: StoredMetadata = {
 					taskId: "task-123",
@@ -429,7 +433,7 @@ describe("MetadataRepository", () => {
 				taskId: "task:with:colons",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
-				executionSteps: ["requirements"],
+				executionSteps: [ReportType.REQUIREMENTS],
 				currentStepIndex: 0,
 			};
 
@@ -445,7 +449,7 @@ describe("MetadataRepository", () => {
 				taskId: longTaskId,
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
-				executionSteps: ["requirements"],
+				executionSteps: [ReportType.REQUIREMENTS],
 				currentStepIndex: 0,
 			};
 
@@ -461,7 +465,7 @@ describe("MetadataRepository", () => {
 				startedAt: "2025-01-15T10:30:45.123Z",
 				completedAt: "2025-01-15T12:45:30.456Z",
 				savedAt: "2025-01-15T12:45:30.789Z",
-				executionSteps: ["requirements"],
+				executionSteps: [ReportType.REQUIREMENTS],
 				currentStepIndex: 0,
 			};
 
@@ -478,7 +482,7 @@ describe("MetadataRepository", () => {
 				taskId: "task-123",
 				startedAt: "2025-01-15T10:00:00.000Z",
 				savedAt: "2025-01-15T10:30:00.000Z",
-				executionSteps: ["requirements"],
+				executionSteps: [ReportType.REQUIREMENTS],
 				currentStepIndex: 999999,
 			};
 

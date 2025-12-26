@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ReportService } from "../report.service";
-import { REPORT_TYPES } from "../../types/report.type";
+import { REPORT_TYPES, ReportType } from "../../types/report.type";
 import { SaveReportInput } from "../schemas/save-report.schema";
 import { createMockReportRepository } from "../repository/__mocks__/report.repository.mock";
 
@@ -28,7 +28,7 @@ describe("ReportService.saveReport", () => {
 			async () => {
 				const input: SaveReportInput = {
 					taskId: "develop-feature-auth-123",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 					content: "# Requirements Report\n\nThis is the content.",
 				};
 
@@ -43,7 +43,7 @@ describe("ReportService.saveReport", () => {
 			async () => {
 				const input: SaveReportInput = {
 					taskId: "develop-feature-auth-123",
-					reportType: "implementation",
+					reportType: ReportType.IMPLEMENTATION,
 					content: "# Implementation Report",
 				};
 
@@ -51,7 +51,7 @@ describe("ReportService.saveReport", () => {
 
 				expect(mockRepository.save).toHaveBeenCalledWith(
 					"develop-feature-auth-123",
-					"implementation",
+					ReportType.IMPLEMENTATION,
 					"# Implementation Report"
 				);
 			}
@@ -62,7 +62,7 @@ describe("ReportService.saveReport", () => {
 			async () => {
 				const input: SaveReportInput = {
 					taskId: "task-id-1",
-					reportType: "plan",
+					reportType: ReportType.PLAN,
 					content: "# Plan Content",
 				};
 
@@ -70,7 +70,7 @@ describe("ReportService.saveReport", () => {
 
 				expect(mockRepository.save).toHaveBeenCalledWith(
 					"task-id-1",
-					"plan",
+					ReportType.PLAN,
 					"# Plan Content"
 				);
 				const matchingCall = vi
@@ -78,7 +78,7 @@ describe("ReportService.saveReport", () => {
 					.mock.calls.find(
 						(call) =>
 							call[0] === "task-id-1" &&
-							call[1] === "plan" &&
+							call[1] === ReportType.PLAN &&
 							call[2] === "# Plan Content"
 					);
 				expect(matchingCall).toBeDefined();
@@ -91,7 +91,7 @@ describe("ReportService.saveReport", () => {
 		describe("taskId validation", () => {
 			it.concurrent("should return error when taskId is missing", async () => {
 				const input = {
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 					content: "content",
 				} as SaveReportInput;
 
@@ -108,7 +108,7 @@ describe("ReportService.saveReport", () => {
 				async () => {
 					const input: SaveReportInput = {
 						taskId: "",
-						reportType: "requirements",
+						reportType: ReportType.REQUIREMENTS,
 						content: "content",
 					};
 
@@ -126,7 +126,7 @@ describe("ReportService.saveReport", () => {
 				async () => {
 					const input: SaveReportInput = {
 						taskId: "   ",
-						reportType: "requirements",
+						reportType: ReportType.REQUIREMENTS,
 						content: "content",
 					};
 
@@ -203,7 +203,7 @@ describe("ReportService.saveReport", () => {
 			it.concurrent("should accept empty string content", async () => {
 				const input: SaveReportInput = {
 					taskId: "task-123",
-					reportType: "implementation",
+					reportType: ReportType.IMPLEMENTATION,
 					content: "",
 				};
 
@@ -217,7 +217,7 @@ describe("ReportService.saveReport", () => {
 				async () => {
 					const input = {
 						taskId: "task-123",
-						reportType: "requirements",
+						reportType: ReportType.REQUIREMENTS,
 					} as SaveReportInput;
 
 					const result = await reportService.saveReport(input);
@@ -253,7 +253,7 @@ describe("ReportService.saveReport", () => {
 			async () => {
 				const input: SaveReportInput = {
 					taskId: "task-123",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 					content: "Updated content",
 				};
 
@@ -262,7 +262,7 @@ describe("ReportService.saveReport", () => {
 				expect(result).toEqual({ success: true });
 				expect(mockRepository.save).toHaveBeenCalledWith(
 					"task-123",
-					"requirements",
+					ReportType.REQUIREMENTS,
 					"Updated content"
 				);
 			}
@@ -271,12 +271,12 @@ describe("ReportService.saveReport", () => {
 		it.concurrent("should not affect reports with different keys", async () => {
 			const input1: SaveReportInput = {
 				taskId: "task-different-keys-1",
-				reportType: "requirements",
+				reportType: ReportType.REQUIREMENTS,
 				content: "Requirements content",
 			};
 			const input2: SaveReportInput = {
 				taskId: "task-different-keys-1",
-				reportType: "implementation",
+				reportType: ReportType.IMPLEMENTATION,
 				content: "Implementation content",
 			};
 
@@ -285,12 +285,12 @@ describe("ReportService.saveReport", () => {
 
 			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-different-keys-1",
-				"requirements",
+				ReportType.REQUIREMENTS,
 				"Requirements content"
 			);
 			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-different-keys-1",
-				"implementation",
+				ReportType.IMPLEMENTATION,
 				"Implementation content"
 			);
 		});
@@ -379,7 +379,7 @@ describe("ReportService.saveReport", () => {
 			async () => {
 				const input: SaveReportInput = {
 					taskId: "",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 					content: "content",
 				};
 
@@ -396,7 +396,7 @@ describe("ReportService.saveReport", () => {
 			async () => {
 				const input: SaveReportInput = {
 					taskId: "",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 					content: "content",
 				};
 
@@ -414,7 +414,7 @@ describe("ReportService.saveReport", () => {
 
 			const input: SaveReportInput = {
 				taskId: "task-123",
-				reportType: "requirements",
+				reportType: ReportType.REQUIREMENTS,
 				content: "content",
 			};
 
@@ -435,7 +435,7 @@ describe("ReportService.saveReport", () => {
 
 				const input: SaveReportInput = {
 					taskId: "task-123",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 					content: "content",
 				};
 
@@ -452,7 +452,7 @@ describe("ReportService.saveReport", () => {
 			const largeContent = "x".repeat(1000000);
 			const input: SaveReportInput = {
 				taskId: "task-123",
-				reportType: "requirements",
+				reportType: ReportType.REQUIREMENTS,
 				content: largeContent,
 			};
 
@@ -464,7 +464,7 @@ describe("ReportService.saveReport", () => {
 		it.concurrent("should handle content with special characters", async () => {
 			const input: SaveReportInput = {
 				taskId: "task-123",
-				reportType: "requirements",
+				reportType: ReportType.REQUIREMENTS,
 				content:
 					"Content with unicode: \u0000\u0001\u0002 and emojis: \uD83D\uDE00\uD83D\uDE01",
 			};
@@ -494,7 +494,7 @@ const code = "example";
 `;
 				const input: SaveReportInput = {
 					taskId: "task-123",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 					content: markdownContent,
 				};
 
@@ -515,7 +515,7 @@ const code = "example";
 
 			const inputs: SaveReportInput[] = taskIds.map((taskId) => ({
 				taskId,
-				reportType: "requirements",
+				reportType: ReportType.REQUIREMENTS,
 				content: "content",
 			}));
 
@@ -532,13 +532,17 @@ const code = "example";
 			const inputs: SaveReportInput[] = [
 				{
 					taskId: "task-concurrent-1",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 					content: "c1",
 				},
-				{ taskId: "task-concurrent-2", reportType: "plan", content: "c2" },
+				{
+					taskId: "task-concurrent-2",
+					reportType: ReportType.PLAN,
+					content: "c2",
+				},
 				{
 					taskId: "task-concurrent-3",
-					reportType: "implementation",
+					reportType: ReportType.IMPLEMENTATION,
 					content: "c3",
 				},
 			];
@@ -555,17 +559,17 @@ const code = "example";
 
 			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-concurrent-1",
-				"requirements",
+				ReportType.REQUIREMENTS,
 				"c1"
 			);
 			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-concurrent-2",
-				"plan",
+				ReportType.PLAN,
 				"c2"
 			);
 			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-concurrent-3",
-				"implementation",
+				ReportType.IMPLEMENTATION,
 				"c3"
 			);
 		});

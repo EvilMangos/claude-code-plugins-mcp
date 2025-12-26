@@ -28,12 +28,17 @@ describe("SignalService.waitSignal", () => {
 
 				const taskId = "task-123";
 				vi.mocked(mockRepository.get).mockReturnValue(
-					createStoredSignal(taskId, "requirements", SignalStatus.PASSED, "OK")
+					createStoredSignal(
+						taskId,
+						ReportType.REQUIREMENTS,
+						SignalStatus.PASSED,
+						"OK"
+					)
 				);
 
 				const resultPromise = signalService.waitSignal({
 					taskId,
-					signalType: "requirements",
+					signalType: ReportType.REQUIREMENTS,
 					timeoutMs: 1000,
 					pollIntervalMs: 100,
 				});
@@ -63,7 +68,7 @@ describe("SignalService.waitSignal", () => {
 				vi.mocked(mockRepository.get).mockReturnValue(
 					createStoredSignal(
 						taskId,
-						"requirements",
+						ReportType.REQUIREMENTS,
 						SignalStatus.FAILED,
 						"Error"
 					)
@@ -71,7 +76,7 @@ describe("SignalService.waitSignal", () => {
 
 				const resultPromise = signalService.waitSignal({
 					taskId,
-					signalType: "requirements",
+					signalType: ReportType.REQUIREMENTS,
 					timeoutMs: 1000,
 					pollIntervalMs: 100,
 				});
@@ -101,7 +106,7 @@ describe("SignalService.waitSignal", () => {
 				vi.mocked(mockRepository.get).mockImplementation(
 					(tid: string, type: ReportType) => {
 						if (tid === taskId) {
-							if (type === "performance") {
+							if (type === ReportType.PERFORMANCE) {
 								return createStoredSignal(
 									tid,
 									type,
@@ -109,7 +114,7 @@ describe("SignalService.waitSignal", () => {
 									"Perf OK"
 								);
 							}
-							if (type === "security") {
+							if (type === ReportType.SECURITY) {
 								return createStoredSignal(
 									tid,
 									type,
@@ -124,7 +129,7 @@ describe("SignalService.waitSignal", () => {
 
 				const resultPromise = signalService.waitSignal({
 					taskId,
-					signalType: ["performance", "security"],
+					signalType: [ReportType.PERFORMANCE, ReportType.SECURITY],
 					timeoutMs: 1000,
 					pollIntervalMs: 100,
 				});
@@ -156,7 +161,7 @@ describe("SignalService.waitSignal", () => {
 				vi.mocked(mockRepository.get).mockImplementation(
 					(tid: string, type: ReportType) => {
 						if (tid === taskId) {
-							if (type === "performance") {
+							if (type === ReportType.PERFORMANCE) {
 								return createStoredSignal(
 									tid,
 									type,
@@ -164,7 +169,7 @@ describe("SignalService.waitSignal", () => {
 									"Perf OK"
 								);
 							}
-							if (type === "security") {
+							if (type === ReportType.SECURITY) {
 								return createStoredSignal(
 									tid,
 									type,
@@ -179,7 +184,7 @@ describe("SignalService.waitSignal", () => {
 
 				const resultPromise = signalService.waitSignal({
 					taskId,
-					signalType: ["performance", "security"],
+					signalType: [ReportType.PERFORMANCE, ReportType.SECURITY],
 					timeoutMs: 1000,
 					pollIntervalMs: 100,
 				});
@@ -211,7 +216,7 @@ describe("SignalService.waitSignal", () => {
 				vi.mocked(mockRepository.get).mockImplementation(
 					(tid: string, type: ReportType) => {
 						if (tid === taskId) {
-							if (type === "performance") {
+							if (type === ReportType.PERFORMANCE) {
 								return createStoredSignal(
 									tid,
 									type,
@@ -219,7 +224,7 @@ describe("SignalService.waitSignal", () => {
 									"Perf FAIL"
 								);
 							}
-							if (type === "security") {
+							if (type === ReportType.SECURITY) {
 								return createStoredSignal(
 									tid,
 									type,
@@ -234,7 +239,7 @@ describe("SignalService.waitSignal", () => {
 
 				const resultPromise = signalService.waitSignal({
 					taskId,
-					signalType: ["performance", "security"],
+					signalType: [ReportType.PERFORMANCE, ReportType.SECURITY],
 					timeoutMs: 1000,
 					pollIntervalMs: 100,
 				});
@@ -261,7 +266,7 @@ describe("SignalService.waitSignal", () => {
 
 			const resultPromise = signalService.waitSignal({
 				taskId,
-				signalType: "requirements",
+				signalType: ReportType.REQUIREMENTS,
 				timeoutMs: 500,
 				pollIntervalMs: 100,
 			});
@@ -295,7 +300,7 @@ describe("SignalService.waitSignal", () => {
 					(tid: string, type: ReportType) => {
 						if (tid !== taskId) return undefined;
 
-						if (type === "performance") {
+						if (type === ReportType.PERFORMANCE) {
 							// Performance found on 2nd poll
 							if (callCount >= 1) {
 								return createStoredSignal(
@@ -307,7 +312,7 @@ describe("SignalService.waitSignal", () => {
 							}
 							return undefined;
 						}
-						if (type === "security") {
+						if (type === ReportType.SECURITY) {
 							// Security found immediately
 							return createStoredSignal(
 								tid,
@@ -322,7 +327,7 @@ describe("SignalService.waitSignal", () => {
 
 				const resultPromise = signalService.waitSignal({
 					taskId,
-					signalType: ["performance", "security"],
+					signalType: [ReportType.PERFORMANCE, ReportType.SECURITY],
 					timeoutMs: 5000,
 					pollIntervalMs: 100,
 				});
@@ -399,7 +404,7 @@ describe("SignalService.waitSignal", () => {
 
 			const resultPromise = signalService.waitSignal({
 				taskId: "task-123",
-				signalType: ["performance", "security"],
+				signalType: [ReportType.PERFORMANCE, ReportType.SECURITY],
 				timeoutMs: 1000,
 				pollIntervalMs: 100,
 			});
@@ -436,7 +441,11 @@ describe("SignalService.waitSignal", () => {
 
 				const resultPromise = signalService.waitSignal({
 					taskId: "task-123",
-					signalType: ["performance", "security", "performance"],
+					signalType: [
+						ReportType.PERFORMANCE,
+						ReportType.SECURITY,
+						ReportType.PERFORMANCE,
+					],
 					timeoutMs: 1000,
 					pollIntervalMs: 100,
 				});

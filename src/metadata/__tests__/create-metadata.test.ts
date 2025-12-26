@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { ReportType } from "../../types/report.type";
+import { ReportType } from "../../types/report.type";
 import { MetadataService } from "../metadata.service";
 import { createMockMetadataRepository } from "../repository/__mocks__/metadata.repository.mock";
 
@@ -13,7 +13,11 @@ describe("MetadataService.createMetadata", () => {
 
 				const result = await metadataService.createMetadata({
 					taskId: "task-123",
-					executionSteps: ["requirements", "plan", "implementation"],
+					executionSteps: [
+						ReportType.REQUIREMENTS,
+						ReportType.PLAN,
+						ReportType.IMPLEMENTATION,
+					],
 				});
 
 				expect(result).toEqual({ success: true });
@@ -27,9 +31,9 @@ describe("MetadataService.createMetadata", () => {
 				const metadataService = new MetadataService(mockRepository);
 				const taskId = "task-456";
 				const executionSteps: (ReportType | ReportType[])[] = [
-					"requirements",
-					"plan",
-					"implementation",
+					ReportType.REQUIREMENTS,
+					ReportType.PLAN,
+					ReportType.IMPLEMENTATION,
 				];
 
 				await metadataService.createMetadata({ taskId, executionSteps });
@@ -47,7 +51,7 @@ describe("MetadataService.createMetadata", () => {
 
 			await metadataService.createMetadata({
 				taskId: "task-789",
-				executionSteps: ["requirements"],
+				executionSteps: [ReportType.REQUIREMENTS],
 			});
 
 			expect(mockRepository.create).toHaveBeenCalledTimes(1);
@@ -60,7 +64,7 @@ describe("MetadataService.createMetadata", () => {
 			const metadataService = new MetadataService(mockRepository);
 
 			const result = await metadataService.createMetadata({
-				executionSteps: ["requirements"],
+				executionSteps: [ReportType.REQUIREMENTS],
 			} as never);
 
 			expect(result.success).toBe(false);
@@ -75,7 +79,7 @@ describe("MetadataService.createMetadata", () => {
 
 				const result = await metadataService.createMetadata({
 					taskId: "",
-					executionSteps: ["requirements"],
+					executionSteps: [ReportType.REQUIREMENTS],
 				});
 
 				expect(result.success).toBe(false);
@@ -91,7 +95,7 @@ describe("MetadataService.createMetadata", () => {
 
 				const result = await metadataService.createMetadata({
 					taskId: "   ",
-					executionSteps: ["requirements"],
+					executionSteps: [ReportType.REQUIREMENTS],
 				});
 
 				expect(result.success).toBe(false);
@@ -107,7 +111,7 @@ describe("MetadataService.createMetadata", () => {
 
 				await metadataService.createMetadata({
 					taskId: "",
-					executionSteps: ["requirements"],
+					executionSteps: [ReportType.REQUIREMENTS],
 				});
 
 				expect(mockRepository.create).not.toHaveBeenCalled();
@@ -171,7 +175,11 @@ describe("MetadataService.createMetadata", () => {
 
 				const result = await metadataService.createMetadata({
 					taskId: "task-123",
-					executionSteps: ["requirements", "not-a-step", "plan"] as never,
+					executionSteps: [
+						ReportType.REQUIREMENTS,
+						"not-a-step",
+						ReportType.PLAN,
+					] as never,
 				});
 
 				expect(result.success).toBe(false);
@@ -204,7 +212,11 @@ describe("MetadataService.createMetadata", () => {
 
 				const result = await metadataService.createMetadata({
 					taskId: "task-parallel",
-					executionSteps: ["plan", ["performance", "security"], "refactoring"],
+					executionSteps: [
+						ReportType.PLAN,
+						[ReportType.PERFORMANCE, ReportType.SECURITY],
+						ReportType.REFACTORING,
+					],
 				});
 
 				expect(result).toEqual({ success: true });
@@ -218,9 +230,9 @@ describe("MetadataService.createMetadata", () => {
 				const metadataService = new MetadataService(mockRepository);
 				const taskId = "task-parallel-2";
 				const executionSteps: (ReportType | ReportType[])[] = [
-					"requirements",
-					["performance", "security"],
-					"documentation",
+					ReportType.REQUIREMENTS,
+					[ReportType.PERFORMANCE, ReportType.SECURITY],
+					ReportType.DOCUMENTATION,
 				];
 
 				await metadataService.createMetadata({ taskId, executionSteps });
@@ -239,11 +251,11 @@ describe("MetadataService.createMetadata", () => {
 			const result = await metadataService.createMetadata({
 				taskId: "task-multi-parallel",
 				executionSteps: [
-					"requirements",
-					["tests-design", "tests-review"],
-					"implementation",
-					["performance", "security"],
-					"documentation",
+					ReportType.REQUIREMENTS,
+					[ReportType.TESTS_DESIGN, ReportType.TESTS_REVIEW],
+					ReportType.IMPLEMENTATION,
+					[ReportType.PERFORMANCE, ReportType.SECURITY],
+					ReportType.DOCUMENTATION,
 				],
 			});
 
@@ -258,7 +270,11 @@ describe("MetadataService.createMetadata", () => {
 
 				const result = await metadataService.createMetadata({
 					taskId: "task-single-parallel",
-					executionSteps: ["plan", ["performance"], "refactoring"] as never,
+					executionSteps: [
+						ReportType.PLAN,
+						[ReportType.PERFORMANCE],
+						ReportType.REFACTORING,
+					] as never,
 				});
 
 				expect(result.success).toBe(false);
@@ -275,9 +291,9 @@ describe("MetadataService.createMetadata", () => {
 				const result = await metadataService.createMetadata({
 					taskId: "task-invalid-parallel",
 					executionSteps: [
-						"plan",
-						["performance", "invalid-step"],
-						"refactoring",
+						ReportType.PLAN,
+						[ReportType.PERFORMANCE, "invalid-step"],
+						ReportType.REFACTORING,
 					] as never,
 				});
 
@@ -297,7 +313,7 @@ describe("MetadataService.createMetadata", () => {
 
 			const result = await metadataService.createMetadata({
 				taskId: "task-error",
-				executionSteps: ["requirements", "plan"],
+				executionSteps: [ReportType.REQUIREMENTS, ReportType.PLAN],
 			});
 
 			expect(result.success).toBe(false);
@@ -315,7 +331,7 @@ describe("MetadataService.createMetadata", () => {
 
 				const result = await metadataService.createMetadata({
 					taskId: "task-string-error",
-					executionSteps: ["requirements"],
+					executionSteps: [ReportType.REQUIREMENTS],
 				});
 
 				expect(result.success).toBe(false);
@@ -325,19 +341,19 @@ describe("MetadataService.createMetadata", () => {
 	});
 
 	describe.concurrent("Full 12-Step Workflow", () => {
-		const fullWorkflowSteps: ReportType[] = [
-			"requirements",
-			"plan",
-			"tests-design",
-			"tests-review",
-			"implementation",
-			"stabilization",
-			"acceptance",
-			"performance",
-			"security",
-			"refactoring",
-			"code-review",
-			"documentation",
+		const fullWorkflowSteps = [
+			ReportType.REQUIREMENTS,
+			ReportType.PLAN,
+			ReportType.TESTS_DESIGN,
+			ReportType.TESTS_REVIEW,
+			ReportType.IMPLEMENTATION,
+			ReportType.STABILIZATION,
+			ReportType.ACCEPTANCE,
+			ReportType.PERFORMANCE,
+			ReportType.SECURITY,
+			ReportType.REFACTORING,
+			ReportType.CODE_REVIEW,
+			ReportType.DOCUMENTATION,
 		];
 
 		it.concurrent("should accept all 12 valid workflow steps", async () => {

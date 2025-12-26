@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { REPORT_TYPES } from "../../types/report.type";
+import { REPORT_TYPES, ReportType } from "../../types/report.type";
 import { SaveSignalInput } from "../schemas/save-signal.schema";
 import { SignalService } from "../signal.service";
 import { SignalStatus } from "../types/signal-status.type";
@@ -35,7 +35,7 @@ describe("SignalService.saveSignal", () => {
 			async () => {
 				const input: SaveSignalInput = {
 					taskId: "develop-feature-auth-123",
-					signalType: "requirements",
+					signalType: ReportType.REQUIREMENTS,
 					content: {
 						status: SignalStatus.PASSED,
 						summary: "All requirements validated successfully",
@@ -53,7 +53,7 @@ describe("SignalService.saveSignal", () => {
 			async () => {
 				const input: SaveSignalInput = {
 					taskId: "develop-feature-auth-123",
-					signalType: "implementation",
+					signalType: ReportType.IMPLEMENTATION,
 					content: {
 						status: SignalStatus.FAILED,
 						summary: "Implementation has failing tests",
@@ -64,7 +64,7 @@ describe("SignalService.saveSignal", () => {
 
 				expect(mockRepository.save).toHaveBeenCalledWith(
 					"develop-feature-auth-123",
-					"implementation",
+					ReportType.IMPLEMENTATION,
 					{
 						status: SignalStatus.FAILED,
 						summary: "Implementation has failing tests",
@@ -78,7 +78,7 @@ describe("SignalService.saveSignal", () => {
 			async () => {
 				const input: SaveSignalInput = {
 					taskId: "task-id-1",
-					signalType: "plan",
+					signalType: ReportType.PLAN,
 					content: {
 						status: SignalStatus.PASSED,
 						summary: "Plan approved",
@@ -87,16 +87,20 @@ describe("SignalService.saveSignal", () => {
 
 				await signalService.saveSignal(input);
 
-				expect(mockRepository.save).toHaveBeenCalledWith("task-id-1", "plan", {
-					status: SignalStatus.PASSED,
-					summary: "Plan approved",
-				});
+				expect(mockRepository.save).toHaveBeenCalledWith(
+					"task-id-1",
+					ReportType.PLAN,
+					{
+						status: SignalStatus.PASSED,
+						summary: "Plan approved",
+					}
+				);
 				const matchingCall = vi
 					.mocked(mockRepository.save)
 					.mock.calls.find(
 						(call) =>
 							call[0] === "task-id-1" &&
-							call[1] === "plan" &&
+							call[1] === ReportType.PLAN &&
 							call[2].status === SignalStatus.PASSED
 					);
 				expect(matchingCall).toBeDefined();
@@ -109,7 +113,7 @@ describe("SignalService.saveSignal", () => {
 		describe("taskId validation", () => {
 			it.concurrent("should return error when taskId is missing", async () => {
 				const input = {
-					signalType: "requirements",
+					signalType: ReportType.REQUIREMENTS,
 					content: { status: SignalStatus.PASSED, summary: "ok" },
 				} as SaveSignalInput;
 
@@ -126,7 +130,7 @@ describe("SignalService.saveSignal", () => {
 				async () => {
 					const input: SaveSignalInput = {
 						taskId: "",
-						signalType: "requirements",
+						signalType: ReportType.REQUIREMENTS,
 						content: { status: SignalStatus.PASSED, summary: "ok" },
 					};
 
@@ -144,7 +148,7 @@ describe("SignalService.saveSignal", () => {
 				async () => {
 					const input: SaveSignalInput = {
 						taskId: "   ",
-						signalType: "requirements",
+						signalType: ReportType.REQUIREMENTS,
 						content: { status: SignalStatus.PASSED, summary: "ok" },
 					};
 
@@ -221,7 +225,7 @@ describe("SignalService.saveSignal", () => {
 			it.concurrent("should return error when content is missing", async () => {
 				const input = {
 					taskId: "task-123",
-					signalType: "requirements",
+					signalType: ReportType.REQUIREMENTS,
 				} as SaveSignalInput;
 
 				const result = await signalService.saveSignal(input);
@@ -237,7 +241,7 @@ describe("SignalService.saveSignal", () => {
 				async () => {
 					const input = {
 						taskId: "task-123",
-						signalType: "requirements",
+						signalType: ReportType.REQUIREMENTS,
 						content: { summary: "ok" },
 					} as SaveSignalInput;
 
@@ -255,7 +259,7 @@ describe("SignalService.saveSignal", () => {
 				async () => {
 					const input = {
 						taskId: "task-123",
-						signalType: "requirements",
+						signalType: ReportType.REQUIREMENTS,
 						content: { status: SignalStatus.PASSED },
 					} as SaveSignalInput;
 
@@ -273,7 +277,7 @@ describe("SignalService.saveSignal", () => {
 				async () => {
 					const input: TestSaveSignalInput = {
 						taskId: "task-123",
-						signalType: "requirements",
+						signalType: ReportType.REQUIREMENTS,
 						content: { status: "unknown", summary: "ok" },
 					};
 
@@ -291,7 +295,7 @@ describe("SignalService.saveSignal", () => {
 			it.concurrent("should accept empty string summary", async () => {
 				const input: SaveSignalInput = {
 					taskId: "task-123",
-					signalType: "implementation",
+					signalType: ReportType.IMPLEMENTATION,
 					content: { status: SignalStatus.PASSED, summary: "" },
 				};
 
@@ -324,7 +328,7 @@ describe("SignalService.saveSignal", () => {
 			async () => {
 				const input: SaveSignalInput = {
 					taskId: "task-123",
-					signalType: "requirements",
+					signalType: ReportType.REQUIREMENTS,
 					content: { status: SignalStatus.PASSED, summary: "Updated summary" },
 				};
 
@@ -333,7 +337,7 @@ describe("SignalService.saveSignal", () => {
 				expect(result).toEqual({ success: true });
 				expect(mockRepository.save).toHaveBeenCalledWith(
 					"task-123",
-					"requirements",
+					ReportType.REQUIREMENTS,
 					{ status: SignalStatus.PASSED, summary: "Updated summary" }
 				);
 			}
@@ -342,12 +346,12 @@ describe("SignalService.saveSignal", () => {
 		it.concurrent("should not affect signals with different keys", async () => {
 			const input1: SaveSignalInput = {
 				taskId: "task-different-keys-1",
-				signalType: "requirements",
+				signalType: ReportType.REQUIREMENTS,
 				content: { status: SignalStatus.PASSED, summary: "Requirements ok" },
 			};
 			const input2: SaveSignalInput = {
 				taskId: "task-different-keys-1",
-				signalType: "implementation",
+				signalType: ReportType.IMPLEMENTATION,
 				content: {
 					status: SignalStatus.FAILED,
 					summary: "Implementation failed",
@@ -359,12 +363,12 @@ describe("SignalService.saveSignal", () => {
 
 			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-different-keys-1",
-				"requirements",
+				ReportType.REQUIREMENTS,
 				{ status: SignalStatus.PASSED, summary: "Requirements ok" }
 			);
 			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-different-keys-1",
-				"implementation",
+				ReportType.IMPLEMENTATION,
 				{ status: SignalStatus.FAILED, summary: "Implementation failed" }
 			);
 		});
@@ -422,7 +426,7 @@ describe("SignalService.saveSignal", () => {
 		it.concurrent("should accept 'passed' status", async () => {
 			const input: SaveSignalInput = {
 				taskId: "task-123",
-				signalType: "requirements",
+				signalType: ReportType.REQUIREMENTS,
 				content: { status: SignalStatus.PASSED, summary: "ok" },
 			};
 
@@ -434,7 +438,7 @@ describe("SignalService.saveSignal", () => {
 		it.concurrent("should accept 'failed' status", async () => {
 			const input: SaveSignalInput = {
 				taskId: "task-123",
-				signalType: "requirements",
+				signalType: ReportType.REQUIREMENTS,
 				content: { status: SignalStatus.FAILED, summary: "not ok" },
 			};
 
@@ -456,7 +460,7 @@ describe("SignalService.saveSignal", () => {
 				invalidStatuses.map((status) =>
 					signalService.saveSignal({
 						taskId: "task-123",
-						signalType: "requirements",
+						signalType: ReportType.REQUIREMENTS,
 						content: { status, summary: "ok" },
 					} as SaveSignalInput)
 				)
@@ -475,7 +479,7 @@ describe("SignalService.saveSignal", () => {
 			async () => {
 				const input: SaveSignalInput = {
 					taskId: "",
-					signalType: "requirements",
+					signalType: ReportType.REQUIREMENTS,
 					content: { status: SignalStatus.PASSED, summary: "ok" },
 				};
 
@@ -494,7 +498,7 @@ describe("SignalService.saveSignal", () => {
 
 			const input: SaveSignalInput = {
 				taskId: "task-123",
-				signalType: "requirements",
+				signalType: ReportType.REQUIREMENTS,
 				content: { status: SignalStatus.PASSED, summary: "ok" },
 			};
 
@@ -512,7 +516,7 @@ describe("SignalService.saveSignal", () => {
 			const longSummary = "x".repeat(10000);
 			const input: SaveSignalInput = {
 				taskId: "task-123",
-				signalType: "requirements",
+				signalType: ReportType.REQUIREMENTS,
 				content: { status: SignalStatus.PASSED, summary: longSummary },
 			};
 
@@ -524,7 +528,7 @@ describe("SignalService.saveSignal", () => {
 		it.concurrent("should handle summary with special characters", async () => {
 			const input: SaveSignalInput = {
 				taskId: "task-123",
-				signalType: "requirements",
+				signalType: ReportType.REQUIREMENTS,
 				content: {
 					status: SignalStatus.PASSED,
 					summary: "Summary with unicode: \u0000 and emojis: \uD83D\uDE00",
@@ -540,17 +544,17 @@ describe("SignalService.saveSignal", () => {
 			const inputs: SaveSignalInput[] = [
 				{
 					taskId: "task-concurrent-1",
-					signalType: "requirements",
+					signalType: ReportType.REQUIREMENTS,
 					content: { status: SignalStatus.PASSED, summary: "s1" },
 				},
 				{
 					taskId: "task-concurrent-2",
-					signalType: "plan",
+					signalType: ReportType.PLAN,
 					content: { status: SignalStatus.FAILED, summary: "s2" },
 				},
 				{
 					taskId: "task-concurrent-3",
-					signalType: "implementation",
+					signalType: ReportType.IMPLEMENTATION,
 					content: { status: SignalStatus.PASSED, summary: "s3" },
 				},
 			];
@@ -567,17 +571,17 @@ describe("SignalService.saveSignal", () => {
 
 			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-concurrent-1",
-				"requirements",
+				ReportType.REQUIREMENTS,
 				{ status: SignalStatus.PASSED, summary: "s1" }
 			);
 			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-concurrent-2",
-				"plan",
+				ReportType.PLAN,
 				{ status: SignalStatus.FAILED, summary: "s2" }
 			);
 			expect(mockRepository.save).toHaveBeenCalledWith(
 				"task-concurrent-3",
-				"implementation",
+				ReportType.IMPLEMENTATION,
 				{ status: SignalStatus.PASSED, summary: "s3" }
 			);
 		});

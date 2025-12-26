@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ReportType } from "../../types/report.type";
+import { ReportType } from "../../types/report.type";
 import { MetadataService } from "../metadata.service";
 import type { StoredMetadata } from "../types/stored-metadata.interface";
 import { createMockMetadataRepository } from "../repository/__mocks__/metadata.repository.mock";
@@ -22,7 +22,11 @@ describe("MetadataService.getNextStep", () => {
 					taskId: "task-123",
 					startedAt: "2024-01-01T00:00:00.000Z",
 					savedAt: "2024-01-01T00:00:00.000Z",
-					executionSteps: ["requirements", "plan", "implementation"],
+					executionSteps: [
+						ReportType.REQUIREMENTS,
+						ReportType.PLAN,
+						ReportType.IMPLEMENTATION,
+					],
 					currentStepIndex: 0,
 				};
 				vi.mocked(mockRepository.get).mockReturnValue(metadata);
@@ -36,7 +40,7 @@ describe("MetadataService.getNextStep", () => {
 					taskId: "task-123",
 					stepNumber: 1,
 					totalSteps: 3,
-					step: "requirements",
+					step: ReportType.REQUIREMENTS,
 					complete: false,
 				});
 			}
@@ -47,7 +51,11 @@ describe("MetadataService.getNextStep", () => {
 				taskId: "task-123",
 				startedAt: "2024-01-01T00:00:00.000Z",
 				savedAt: "2024-01-01T00:00:00.000Z",
-				executionSteps: ["requirements", "plan", "implementation"],
+				executionSteps: [
+					ReportType.REQUIREMENTS,
+					ReportType.PLAN,
+					ReportType.IMPLEMENTATION,
+				],
 				currentStepIndex: 1,
 			};
 			vi.mocked(mockRepository.get).mockReturnValue(metadata);
@@ -59,7 +67,7 @@ describe("MetadataService.getNextStep", () => {
 				taskId: "task-123",
 				stepNumber: 2,
 				totalSteps: 3,
-				step: "plan",
+				step: ReportType.PLAN,
 				complete: false,
 			});
 		});
@@ -70,11 +78,11 @@ describe("MetadataService.getNextStep", () => {
 				startedAt: "2024-01-01T00:00:00.000Z",
 				savedAt: "2024-01-01T00:00:00.000Z",
 				executionSteps: [
-					"requirements",
-					"plan",
-					"tests-design",
-					"implementation",
-					"documentation",
+					ReportType.REQUIREMENTS,
+					ReportType.PLAN,
+					ReportType.TESTS_DESIGN,
+					ReportType.IMPLEMENTATION,
+					ReportType.DOCUMENTATION,
 				],
 				currentStepIndex: 0,
 			};
@@ -95,7 +103,11 @@ describe("MetadataService.getNextStep", () => {
 					startedAt: "2024-01-01T00:00:00.000Z",
 					completedAt: "2024-01-01T01:00:00.000Z",
 					savedAt: "2024-01-01T01:00:00.000Z",
-					executionSteps: ["requirements", "plan", "implementation"],
+					executionSteps: [
+						ReportType.REQUIREMENTS,
+						ReportType.PLAN,
+						ReportType.IMPLEMENTATION,
+					],
 					currentStepIndex: 2,
 				};
 				vi.mocked(mockRepository.get).mockReturnValue(metadata);
@@ -116,7 +128,11 @@ describe("MetadataService.getNextStep", () => {
 					startedAt: "2024-01-01T00:00:00.000Z",
 					completedAt: "2024-01-01T01:00:00.000Z",
 					savedAt: "2024-01-01T01:00:00.000Z",
-					executionSteps: ["requirements", "plan", "implementation"],
+					executionSteps: [
+						ReportType.REQUIREMENTS,
+						ReportType.PLAN,
+						ReportType.IMPLEMENTATION,
+					],
 					currentStepIndex: 2,
 				};
 				vi.mocked(mockRepository.get).mockReturnValue(metadata);
@@ -136,7 +152,11 @@ describe("MetadataService.getNextStep", () => {
 					taskId: "task-123",
 					startedAt: "2024-01-01T00:00:00.000Z",
 					savedAt: "2024-01-01T00:00:00.000Z",
-					executionSteps: ["requirements", "plan", "implementation"],
+					executionSteps: [
+						ReportType.REQUIREMENTS,
+						ReportType.PLAN,
+						ReportType.IMPLEMENTATION,
+					],
 					currentStepIndex: 2,
 				};
 				vi.mocked(mockRepository.get).mockReturnValue(metadata);
@@ -146,7 +166,7 @@ describe("MetadataService.getNextStep", () => {
 				});
 
 				expect(result.complete).toBe(false);
-				expect(result.step).toBe("implementation");
+				expect(result.step).toBe(ReportType.IMPLEMENTATION);
 			}
 		);
 
@@ -158,7 +178,11 @@ describe("MetadataService.getNextStep", () => {
 					startedAt: "2024-01-01T00:00:00.000Z",
 					completedAt: "2024-01-01T01:00:00.000Z",
 					savedAt: "2024-01-01T01:00:00.000Z",
-					executionSteps: ["requirements", "plan", "implementation"],
+					executionSteps: [
+						ReportType.REQUIREMENTS,
+						ReportType.PLAN,
+						ReportType.IMPLEMENTATION,
+					],
 					currentStepIndex: 2,
 				};
 				vi.mocked(mockRepository.get).mockReturnValue(metadata);
@@ -219,19 +243,19 @@ describe("MetadataService.getNextStep", () => {
 	});
 
 	describe.concurrent("Full 12-Step Workflow", () => {
-		const fullWorkflowSteps: ReportType[] = [
-			"requirements",
-			"plan",
-			"tests-design",
-			"tests-review",
-			"implementation",
-			"stabilization",
-			"acceptance",
-			"performance",
-			"security",
-			"refactoring",
-			"code-review",
-			"documentation",
+		const fullWorkflowSteps = [
+			ReportType.REQUIREMENTS,
+			ReportType.PLAN,
+			ReportType.TESTS_DESIGN,
+			ReportType.TESTS_REVIEW,
+			ReportType.IMPLEMENTATION,
+			ReportType.STABILIZATION,
+			ReportType.ACCEPTANCE,
+			ReportType.PERFORMANCE,
+			ReportType.SECURITY,
+			ReportType.REFACTORING,
+			ReportType.CODE_REVIEW,
+			ReportType.DOCUMENTATION,
 		];
 
 		it.concurrent("should handle 12-step workflow at first step", async () => {
@@ -253,7 +277,7 @@ describe("MetadataService.getNextStep", () => {
 				taskId: "full-workflow",
 				stepNumber: 1,
 				totalSteps: 12,
-				step: "requirements",
+				step: ReportType.REQUIREMENTS,
 				complete: false,
 			});
 		});
@@ -279,7 +303,7 @@ describe("MetadataService.getNextStep", () => {
 					taskId: "full-workflow",
 					stepNumber: 12,
 					totalSteps: 12,
-					step: "documentation",
+					step: ReportType.DOCUMENTATION,
 					complete: false,
 				});
 			}

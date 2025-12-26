@@ -4,7 +4,7 @@ import {
 	extractSchemaShape,
 	setupTestServerWithTools,
 } from "./helpers/mcp-test-utils";
-import { REPORT_TYPES } from "../types/report.type";
+import { REPORT_TYPES, ReportType } from "../types/report.type";
 import { TOKENS } from "../container";
 import { ReportRepository } from "../report/types/report.repository.interface";
 import { SignalStatus } from "../signal/types/signal-status.type";
@@ -89,7 +89,7 @@ describe("MCP Server Tool Registration", () => {
 				const result = await saveReportTool.handler!(
 					{
 						taskId: "test-task-123",
-						reportType: "requirements",
+						reportType: ReportType.REQUIREMENTS,
 						content: "# Test Report\nThis is test content.",
 					},
 					{} // empty extra context
@@ -117,7 +117,7 @@ describe("MCP Server Tool Registration", () => {
 				const result = await saveReportTool.handler!(
 					{
 						taskId: "",
-						reportType: "requirements",
+						reportType: ReportType.REQUIREMENTS,
 						content: "content",
 					},
 					{}
@@ -139,7 +139,7 @@ describe("MCP Server Tool Registration", () => {
 			const result = await saveReportTool.handler!(
 				{
 					taskId: "task-id",
-					reportType: "plan",
+					reportType: ReportType.PLAN,
 					content: "content",
 				},
 				{}
@@ -169,7 +169,7 @@ describe("MCP Server Tool Registration", () => {
 				const saveResult = await saveReportTool.handler!(
 					{
 						taskId: "integration-test-123",
-						reportType: "implementation",
+						reportType: ReportType.IMPLEMENTATION,
 						content: "Integration test content",
 					},
 					{}
@@ -184,12 +184,12 @@ describe("MCP Server Tool Registration", () => {
 				);
 				const storedReport = reportRepository.get(
 					"integration-test-123",
-					"implementation"
+					ReportType.IMPLEMENTATION
 				);
 
 				expect(storedReport).toBeDefined();
 				expect(storedReport?.taskId).toBe("integration-test-123");
-				expect(storedReport?.reportType).toBe("implementation");
+				expect(storedReport?.reportType).toBe(ReportType.IMPLEMENTATION);
 				expect(storedReport?.content).toBe("Integration test content");
 			}
 		);
@@ -255,7 +255,7 @@ describe("MCP Server Tool Registration", () => {
 				const result = await getReportTool.handler!(
 					{
 						taskId: "non-existent-task-123",
-						reportType: "requirements",
+						reportType: ReportType.REQUIREMENTS,
 					},
 					{} // empty extra context
 				);
@@ -283,7 +283,7 @@ describe("MCP Server Tool Registration", () => {
 				const result = await getReportTool.handler!(
 					{
 						taskId: "",
-						reportType: "requirements",
+						reportType: ReportType.REQUIREMENTS,
 					},
 					{}
 				);
@@ -306,7 +306,7 @@ describe("MCP Server Tool Registration", () => {
 				const result = await getReportTool.handler!(
 					{
 						taskId: "task-id",
-						reportType: "plan",
+						reportType: ReportType.PLAN,
 					},
 					{}
 				);
@@ -335,7 +335,7 @@ describe("MCP Server Tool Registration", () => {
 				const saveResult = await saveReportTool.handler!(
 					{
 						taskId: "integration-get-test-456",
-						reportType: "acceptance",
+						reportType: ReportType.ACCEPTANCE,
 						content: "# Acceptance Report\n\nThis is the acceptance content.",
 					},
 					{}
@@ -348,7 +348,7 @@ describe("MCP Server Tool Registration", () => {
 				const getResult = await getReportTool.handler!(
 					{
 						taskId: "integration-get-test-456",
-						reportType: "acceptance",
+						reportType: ReportType.ACCEPTANCE,
 					},
 					{}
 				);
@@ -376,7 +376,7 @@ describe("MCP Server Tool Registration", () => {
 				await saveReportTool.handler!(
 					{
 						taskId: "integration-module-test-789",
-						reportType: "security",
+						reportType: ReportType.SECURITY,
 						content: "Security integration test content",
 					},
 					{}
@@ -386,7 +386,7 @@ describe("MCP Server Tool Registration", () => {
 				const getResult = await getReportTool.handler!(
 					{
 						taskId: "integration-module-test-789",
-						reportType: "security",
+						reportType: ReportType.SECURITY,
 					},
 					{}
 				);
@@ -401,7 +401,7 @@ describe("MCP Server Tool Registration", () => {
 				);
 				const storedReport = reportRepository.get(
 					"integration-module-test-789",
-					"security"
+					ReportType.SECURITY
 				);
 
 				expect(storedReport).toBeDefined();
@@ -638,7 +638,7 @@ describe("MCP Server Tool Registration", () => {
 				const result = await saveSignalTool.handler!(
 					{
 						taskId: "test-signal-task-123",
-						signalType: "requirements",
+						signalType: ReportType.REQUIREMENTS,
 						content: {
 							status: SignalStatus.PASSED,
 							summary: "All requirements validated successfully",
@@ -669,7 +669,7 @@ describe("MCP Server Tool Registration", () => {
 				const result = await saveSignalTool.handler!(
 					{
 						taskId: "",
-						signalType: "requirements",
+						signalType: ReportType.REQUIREMENTS,
 						content: {
 							status: SignalStatus.PASSED,
 							summary: "Summary",
@@ -696,7 +696,7 @@ describe("MCP Server Tool Registration", () => {
 				const result = await saveSignalTool.handler!(
 					{
 						taskId: "signal-task-id",
-						signalType: "plan",
+						signalType: ReportType.PLAN,
 						content: {
 							status: SignalStatus.FAILED,
 							summary: "Plan review failed",
@@ -774,7 +774,7 @@ describe("MCP Server Tool Registration", () => {
 				const result = await waitSignalTool.handler!(
 					{
 						taskId: "test-wait-task-123",
-						signalType: "requirements",
+						signalType: ReportType.REQUIREMENTS,
 						timeoutMs: 150,
 						pollIntervalMs: 100,
 					},
@@ -804,7 +804,7 @@ describe("MCP Server Tool Registration", () => {
 				const result = await waitSignalTool.handler!(
 					{
 						taskId: "",
-						signalType: "requirements",
+						signalType: ReportType.REQUIREMENTS,
 					},
 					{}
 				);
@@ -827,7 +827,7 @@ describe("MCP Server Tool Registration", () => {
 				const result = await waitSignalTool.handler!(
 					{
 						taskId: "wait-task-id",
-						signalType: "plan",
+						signalType: ReportType.PLAN,
 						timeoutMs: 100,
 						pollIntervalMs: 100,
 					},
@@ -858,7 +858,7 @@ describe("MCP Server Tool Registration", () => {
 				await createMetadataTool.handler!(
 					{
 						taskId: "integration-signal-test-456",
-						executionSteps: ["acceptance"],
+						executionSteps: [ReportType.ACCEPTANCE],
 					},
 					{}
 				);
@@ -867,7 +867,7 @@ describe("MCP Server Tool Registration", () => {
 				const saveResult = await saveSignalTool.handler!(
 					{
 						taskId: "integration-signal-test-456",
-						signalType: "acceptance",
+						signalType: ReportType.ACCEPTANCE,
 						content: {
 							status: SignalStatus.PASSED,
 							summary: "Acceptance tests passed",
@@ -883,7 +883,7 @@ describe("MCP Server Tool Registration", () => {
 				const waitResult = await waitSignalTool.handler!(
 					{
 						taskId: "integration-signal-test-456",
-						signalType: "acceptance",
+						signalType: ReportType.ACCEPTANCE,
 						timeoutMs: 1000,
 						pollIntervalMs: 100,
 					},
@@ -960,7 +960,11 @@ describe("MCP Server Tool Registration", () => {
 				const result = await createMetadataTool.handler!(
 					{
 						taskId: "test-metadata-task-123",
-						executionSteps: ["requirements", "plan", "implementation"],
+						executionSteps: [
+							ReportType.REQUIREMENTS,
+							ReportType.PLAN,
+							ReportType.IMPLEMENTATION,
+						],
 					},
 					{} // empty extra context
 				);
@@ -987,7 +991,7 @@ describe("MCP Server Tool Registration", () => {
 				const result = await createMetadataTool.handler!(
 					{
 						taskId: "",
-						executionSteps: ["requirements"],
+						executionSteps: [ReportType.REQUIREMENTS],
 					},
 					{}
 				);
@@ -1010,7 +1014,7 @@ describe("MCP Server Tool Registration", () => {
 				const result = await createMetadataTool.handler!(
 					{
 						taskId: "metadata-task-id",
-						executionSteps: ["plan", "implementation"],
+						executionSteps: [ReportType.PLAN, ReportType.IMPLEMENTATION],
 					},
 					{}
 				);
@@ -1161,7 +1165,11 @@ describe("MCP Server Tool Registration", () => {
 				const createResult = await createMetadataTool.handler!(
 					{
 						taskId: "integration-metadata-test-456",
-						executionSteps: ["requirements", "plan", "implementation"],
+						executionSteps: [
+							ReportType.REQUIREMENTS,
+							ReportType.PLAN,
+							ReportType.IMPLEMENTATION,
+						],
 					},
 					{}
 				);
@@ -1179,7 +1187,7 @@ describe("MCP Server Tool Registration", () => {
 
 				const parsedGetResult = JSON.parse(getResult.content[0].text);
 				expect(parsedGetResult.success).toBe(true);
-				expect(parsedGetResult.step).toBe("requirements");
+				expect(parsedGetResult.step).toBe(ReportType.REQUIREMENTS);
 			}
 		);
 
@@ -1193,12 +1201,16 @@ describe("MCP Server Tool Registration", () => {
 				await createMetadataTool.handler!(
 					{
 						taskId: "integration-step-same-test",
-						executionSteps: ["requirements", "plan", "implementation"],
+						executionSteps: [
+							ReportType.REQUIREMENTS,
+							ReportType.PLAN,
+							ReportType.IMPLEMENTATION,
+						],
 					},
 					{}
 				);
 
-				// First call - should return "requirements"
+				// First call - should return ReportType.REQUIREMENTS
 				const firstResult = await getNextStepTool.handler!(
 					{
 						taskId: "integration-step-same-test",
@@ -1206,11 +1218,11 @@ describe("MCP Server Tool Registration", () => {
 					{}
 				);
 				const parsedFirstResult = JSON.parse(firstResult.content[0].text);
-				expect(parsedFirstResult.step).toBe("requirements");
+				expect(parsedFirstResult.step).toBe(ReportType.REQUIREMENTS);
 				expect(parsedFirstResult.stepNumber).toBe(1);
 				expect(parsedFirstResult.totalSteps).toBe(3);
 
-				// Second call - should still return "requirements" (step doesn't advance without signals)
+				// Second call - should still return ReportType.REQUIREMENTS (step doesn't advance without signals)
 				const secondResult = await getNextStepTool.handler!(
 					{
 						taskId: "integration-step-same-test",
@@ -1218,7 +1230,7 @@ describe("MCP Server Tool Registration", () => {
 					{}
 				);
 				const parsedSecondResult = JSON.parse(secondResult.content[0].text);
-				expect(parsedSecondResult.step).toBe("requirements");
+				expect(parsedSecondResult.step).toBe(ReportType.REQUIREMENTS);
 				expect(parsedSecondResult.stepNumber).toBe(1);
 			}
 		);

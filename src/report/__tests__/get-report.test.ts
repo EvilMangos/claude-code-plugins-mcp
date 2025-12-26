@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ReportService } from "../report.service";
-import { REPORT_TYPES } from "../../types/report.type";
+import { REPORT_TYPES, ReportType } from "../../types/report.type";
 import { GetReportInput } from "../schemas/get-report.schema";
 import type { StoredReport } from "../types/stored-report.interface";
 import { createMockReportRepository } from "../repository/__mocks__/report.repository.mock";
@@ -26,7 +26,7 @@ describe("ReportService.getReport", () => {
 	describe("Validate taskId Input", () => {
 		it.concurrent("should return error when taskId is missing", async () => {
 			const input = {
-				reportType: "requirements",
+				reportType: ReportType.REQUIREMENTS,
 			} as GetReportInput;
 
 			const result = await reportService.getReport(input);
@@ -42,7 +42,7 @@ describe("ReportService.getReport", () => {
 			async () => {
 				const input: GetReportInput = {
 					taskId: "",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 				};
 
 				const result = await reportService.getReport(input);
@@ -59,7 +59,7 @@ describe("ReportService.getReport", () => {
 			async () => {
 				const input: GetReportInput = {
 					taskId: "   ",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 				};
 
 				const result = await reportService.getReport(input);
@@ -78,7 +78,7 @@ describe("ReportService.getReport", () => {
 
 				const input: GetReportInput = {
 					taskId: "valid-task-id",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 				};
 
 				const result = await reportService.getReport(input);
@@ -202,7 +202,7 @@ describe("ReportService.getReport", () => {
 			async () => {
 				const storedReport: StoredReport = {
 					taskId: "develop-feature-auth-123",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 					content: "# Requirements Report\n\nThis is the content.",
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
@@ -211,7 +211,7 @@ describe("ReportService.getReport", () => {
 
 				const input: GetReportInput = {
 					taskId: "develop-feature-auth-123",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 				};
 
 				const result = await reportService.getReport(input);
@@ -228,7 +228,7 @@ describe("ReportService.getReport", () => {
 			async () => {
 				const storedReport: StoredReport = {
 					taskId: "task-id-1",
-					reportType: "plan",
+					reportType: ReportType.PLAN,
 					content: "# Plan Content",
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
@@ -237,7 +237,7 @@ describe("ReportService.getReport", () => {
 
 				const input: GetReportInput = {
 					taskId: "task-id-1",
-					reportType: "plan",
+					reportType: ReportType.PLAN,
 				};
 
 				const result = await reportService.getReport(input);
@@ -254,14 +254,14 @@ describe("ReportService.getReport", () => {
 
 				const input: GetReportInput = {
 					taskId: "my-task-id",
-					reportType: "implementation",
+					reportType: ReportType.IMPLEMENTATION,
 				};
 
 				await reportService.getReport(input);
 
 				expect(mockRepository.get).toHaveBeenCalledWith(
 					"my-task-id",
-					"implementation"
+					ReportType.IMPLEMENTATION
 				);
 			}
 		);
@@ -275,7 +275,7 @@ describe("ReportService.getReport", () => {
 
 				const input: GetReportInput = {
 					taskId: "non-existent-task",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 				};
 
 				const result = await reportService.getReport(input);
@@ -294,7 +294,7 @@ describe("ReportService.getReport", () => {
 
 				const input: GetReportInput = {
 					taskId: "non-existent-task",
-					reportType: "plan",
+					reportType: ReportType.PLAN,
 				};
 
 				const result = await reportService.getReport(input);
@@ -315,7 +315,7 @@ describe("ReportService.getReport", () => {
 
 				const input: GetReportInput = {
 					taskId: "task-123",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 				};
 
 				const result = await reportService.getReport(input);
@@ -336,7 +336,7 @@ describe("ReportService.getReport", () => {
 
 				const input: GetReportInput = {
 					taskId: "task-123",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 				};
 
 				const result = await reportService.getReport(input);
@@ -355,7 +355,7 @@ describe("ReportService.getReport", () => {
 
 				const input: GetReportInput = {
 					taskId: "task-123",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 				};
 
 				const result = await reportService.getReport(input);
@@ -372,19 +372,19 @@ describe("ReportService.getReport", () => {
 			const storedReports: StoredReport[] = [
 				{
 					taskId: "task-concurrent-1",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 					content: "c1",
 					savedAt: "2025-01-15T10:30:00.000Z",
 				},
 				{
 					taskId: "task-concurrent-2",
-					reportType: "plan",
+					reportType: ReportType.PLAN,
 					content: "c2",
 					savedAt: "2025-01-15T10:31:00.000Z",
 				},
 				{
 					taskId: "task-concurrent-3",
-					reportType: "implementation",
+					reportType: ReportType.IMPLEMENTATION,
 					content: "c3",
 					savedAt: "2025-01-15T10:32:00.000Z",
 				},
@@ -396,9 +396,9 @@ describe("ReportService.getReport", () => {
 				.mockReturnValueOnce(storedReports[2]);
 
 			const inputs: GetReportInput[] = [
-				{ taskId: "task-concurrent-1", reportType: "requirements" },
-				{ taskId: "task-concurrent-2", reportType: "plan" },
-				{ taskId: "task-concurrent-3", reportType: "implementation" },
+				{ taskId: "task-concurrent-1", reportType: ReportType.REQUIREMENTS },
+				{ taskId: "task-concurrent-2", reportType: ReportType.PLAN },
+				{ taskId: "task-concurrent-3", reportType: ReportType.IMPLEMENTATION },
 			];
 
 			const results = await Promise.all(
@@ -423,7 +423,7 @@ describe("ReportService.getReport", () => {
 
 			const inputs: GetReportInput[] = taskIds.map((taskId) => ({
 				taskId,
-				reportType: "requirements",
+				reportType: ReportType.REQUIREMENTS,
 			}));
 
 			const results = await Promise.all(
@@ -441,7 +441,7 @@ describe("ReportService.getReport", () => {
 				const largeContent = "x".repeat(1000000);
 				const storedReport: StoredReport = {
 					taskId: "task-large",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 					content: largeContent,
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
@@ -450,7 +450,7 @@ describe("ReportService.getReport", () => {
 
 				const input: GetReportInput = {
 					taskId: "task-large",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 				};
 
 				const result = await reportService.getReport(input);
@@ -468,7 +468,7 @@ describe("ReportService.getReport", () => {
 					"Content with unicode: \u0000\u0001\u0002 and emojis: \uD83D\uDE00\uD83D\uDE01";
 				const storedReport: StoredReport = {
 					taskId: "task-special",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 					content: specialContent,
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
@@ -477,7 +477,7 @@ describe("ReportService.getReport", () => {
 
 				const input: GetReportInput = {
 					taskId: "task-special",
-					reportType: "requirements",
+					reportType: ReportType.REQUIREMENTS,
 				};
 
 				const result = await reportService.getReport(input);
@@ -507,7 +507,7 @@ const code = "example";
 `;
 				const storedReport: StoredReport = {
 					taskId: "task-markdown",
-					reportType: "documentation",
+					reportType: ReportType.DOCUMENTATION,
 					content: markdownContent,
 					savedAt: "2025-01-15T10:30:00.000Z",
 				};
@@ -516,7 +516,7 @@ const code = "example";
 
 				const input: GetReportInput = {
 					taskId: "task-markdown",
-					reportType: "documentation",
+					reportType: ReportType.DOCUMENTATION,
 				};
 
 				const result = await reportService.getReport(input);
