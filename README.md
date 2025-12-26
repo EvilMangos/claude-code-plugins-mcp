@@ -70,8 +70,10 @@ Wait for a workflow signal to appear. Polls until the signal is found or timeout
 **Parameters:**
 - `taskId` (string, required) - Unique identifier for the task
 - `signalType` (string or array, required) - Workflow step(s) to wait for. Can be a single step or an array for parallel steps.
-- `timeoutMs` (number, optional) - Maximum wait time in milliseconds (default: 30000, max: 600000)
-- `pollIntervalMs` (number, optional) - Polling interval in milliseconds (default: 1000, min: 100, max: 60000)
+
+**Server-side configuration (via environment variables):**
+- `WAIT_SIGNAL_TIMEOUT_MS` - Maximum wait time in milliseconds (default: 1200000 / 20 minutes)
+- `WAIT_SIGNAL_POLL_INTERVAL_MS` - Polling interval in milliseconds (default: 5000)
 
 #### `create-metadata`
 
@@ -92,20 +94,21 @@ Get the next workflow step for a task.
 
 Reports and signals can be saved for the following workflow steps:
 
-| Step             | Description |
-|------------------|-------------|
-| `requirements`   | Requirements analysis |
-| `plan`           | Implementation planning |
-| `tests-design`   | Test design phase |
-| `tests-review`   | Test review phase |
-| `implementation` | Code implementation |
-| `stabilization`  | Bug fixing and stabilization |
-| `acceptance`     | Acceptance testing |
-| `performance`    | Performance review |
-| `security`       | Security review |
-| `refactoring`    | Code refactoring |
-| `code-review`    | Code review |
-| `documentation`  | Documentation updates |
+| Step                | Description |
+|---------------------|-------------|
+| `requirements`      | Requirements analysis |
+| `codebase-analysis` | Codebase analysis |
+| `plan`              | Implementation planning |
+| `tests-design`      | Test design phase |
+| `tests-review`      | Test review phase |
+| `implementation`    | Code implementation |
+| `stabilization`     | Bug fixing and stabilization |
+| `acceptance`        | Acceptance testing |
+| `performance`       | Performance review |
+| `security`          | Security review |
+| `refactoring`       | Code refactoring |
+| `code-review`       | Code review |
+| `documentation`     | Documentation updates |
 
 ## Development
 
@@ -140,6 +143,7 @@ pnpm run format
 src/
 ├── index.ts                    # Entry point
 ├── container/                  # DI container setup
+├── config/                     # Server configuration (e.g., wait-signal defaults)
 ├── tools/
 │   └── register.ts             # Tool registration
 ├── schemas/                    # Shared Zod validation schemas
