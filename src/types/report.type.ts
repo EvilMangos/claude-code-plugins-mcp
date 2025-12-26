@@ -26,4 +26,4 @@ export type ReportType = (typeof ReportType)[keyof typeof ReportType];
 /**
  * Array of valid report types (derived from ReportType object).
  */
-export const REPORT_TYPES = Object.values(ReportType);
+export const REPORT_TYPES: ReportType[] = Object.values(ReportType);

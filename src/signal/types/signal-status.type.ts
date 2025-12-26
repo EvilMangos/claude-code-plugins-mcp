@@ -15,4 +15,4 @@ export type SignalStatus = (typeof SignalStatus)[keyof typeof SignalStatus];
 /**
  * Array of valid signal statuses (derived from SignalStatus object).
  */
-export const SIGNAL_STATUSES = Object.values(SignalStatus);
+export const SIGNAL_STATUSES: SignalStatus[] = Object.values(SignalStatus);
