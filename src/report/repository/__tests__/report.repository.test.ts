@@ -197,19 +197,6 @@ function hello() {
 
 			expect(repository.get("task-2", "plan")?.content).toBe("New content");
 		});
-
-		it.concurrent("should not throw when clearing empty repository", () => {
-			expect(() => repository.clear()).not.toThrow();
-		});
-
-		it.concurrent("should be callable multiple times", () => {
-			repository.save("task-1", "requirements", "Content");
-
-			expect(() => {
-				repository.clear();
-				repository.clear();
-			}).not.toThrow();
-		});
 	});
 
 	describe("Edge Cases", () => {

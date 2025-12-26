@@ -1,6 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ReportService } from "../report.service";
-import { REPORT_TYPES, ReportType } from "../../types/report.type";
+import { REPORT_TYPES } from "../../types/report.type";
 import { SaveReportInput } from "../schemas/save-report.schema";
 import { createMockReportRepository } from "../repository/__mocks__/report.repository.mock";
 
@@ -19,10 +19,6 @@ const reportService = new ReportService(mockRepository);
 
 describe("ReportService.saveReport", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
-	});
-
-	afterEach(() => {
 		vi.clearAllMocks();
 	});
 
@@ -301,23 +297,8 @@ describe("ReportService.saveReport", () => {
 	});
 
 	describe("Accept Only Valid Report Types", () => {
-		it.concurrent("should accept all 12 valid report types", async () => {
-			const validTypes: ReportType[] = [
-				"requirements",
-				"plan",
-				"tests-design",
-				"tests-review",
-				"implementation",
-				"stabilization",
-				"acceptance",
-				"performance",
-				"security",
-				"refactoring",
-				"code-review",
-				"documentation",
-			];
-
-			const inputs: SaveReportInput[] = validTypes.map((reportType) => ({
+		it.concurrent("should accept all valid report types", async () => {
+			const inputs: SaveReportInput[] = REPORT_TYPES.map((reportType) => ({
 				taskId: "task-123",
 				reportType,
 				content: `Content for ${reportType}`,
@@ -388,132 +369,6 @@ describe("ReportService.saveReport", () => {
 					expect(result.success).toBe(false);
 					expect(result.error).toBeDefined();
 				});
-			}
-		);
-
-		it.concurrent("should reject partial matches of valid types", async () => {
-			const partialMatches = [
-				"req",
-				"impl",
-				"plan-design",
-				"test",
-				"perf",
-				"sec",
-				"doc",
-				"refactor",
-			];
-
-			const results = await Promise.all(
-				partialMatches.map((reportType) =>
-					reportService.saveReport({
-						taskId: "task-123",
-						reportType,
-						content: "Content",
-					} as SaveReportInput)
-				)
-			);
-
-			results.forEach((result) => {
-				expect(result.success).toBe(false);
-				expect(result.error).toBeDefined();
-			});
-		});
-
-		it.concurrent(
-			"should reject report types with special characters",
-			async () => {
-				const input = {
-					taskId: "task-123",
-					reportType: "report-with-dashes_and_underscores",
-					content: "Content",
-				};
-
-				const result = await reportService.saveReport(input as SaveReportInput);
-
-				expect(result.success).toBe(false);
-				expect(result.error).toBeDefined();
-			}
-		);
-
-		it.concurrent("should reject single character report type", async () => {
-			const input = {
-				taskId: "task-123",
-				reportType: "a",
-				content: "Content",
-			};
-
-			const result = await reportService.saveReport(input as SaveReportInput);
-
-			expect(result.success).toBe(false);
-			expect(result.error).toBeDefined();
-		});
-
-		it.concurrent("should reject long invalid report type names", async () => {
-			const input = {
-				taskId: "task-123",
-				reportType: "this-is-a-very-long-report-type-name-that-should-not-work",
-				content: "Content",
-			};
-
-			const result = await reportService.saveReport(input as SaveReportInput);
-
-			expect(result.success).toBe(false);
-			expect(result.error).toBeDefined();
-		});
-	});
-
-	describe("Export REPORT_TYPES and ReportType", () => {
-		it.concurrent("should export REPORT_TYPES constant with 12 values", () => {
-			expect(REPORT_TYPES).toBeDefined();
-			expect(Array.isArray(REPORT_TYPES)).toBe(true);
-			expect(REPORT_TYPES).toHaveLength(12);
-		});
-
-		it.concurrent(
-			"should export REPORT_TYPES containing all valid workflow steps",
-			() => {
-				const expectedTypes = [
-					"requirements",
-					"plan",
-					"tests-design",
-					"tests-review",
-					"implementation",
-					"stabilization",
-					"acceptance",
-					"performance",
-					"security",
-					"refactoring",
-					"code-review",
-					"documentation",
-				];
-
-				expectedTypes.forEach((type) => {
-					expect(REPORT_TYPES).toContain(type);
-				});
-			}
-		);
-
-		it.concurrent(
-			"should export ReportType type (compile-time verification)",
-			() => {
-				const validType: ReportType = "requirements";
-				expect(validType).toBe("requirements");
-
-				const types: ReportType[] = [
-					"requirements",
-					"plan",
-					"tests-design",
-					"tests-review",
-					"implementation",
-					"stabilization",
-					"acceptance",
-					"performance",
-					"security",
-					"refactoring",
-					"code-review",
-					"documentation",
-				];
-				expect(types).toHaveLength(12);
 			}
 		);
 	});

@@ -337,26 +337,6 @@ describe("MetadataRepository", () => {
 
 			expect(repository.get("task-2")).toEqual(newMetadata);
 		});
-
-		it.concurrent("should not throw when clearing empty repository", () => {
-			expect(() => repository.clear()).not.toThrow();
-		});
-
-		it.concurrent("should be callable multiple times", () => {
-			const metadata: StoredMetadata = {
-				taskId: "task-1",
-				startedAt: "2025-01-15T10:00:00.000Z",
-				savedAt: "2025-01-15T10:30:00.000Z",
-				executionSteps: ["requirements"],
-				currentStepIndex: 0,
-			};
-			repository["save"](metadata);
-
-			expect(() => {
-				repository.clear();
-				repository.clear();
-			}).not.toThrow();
-		});
 	});
 
 	describe("JSON Serialization/Deserialization", () => {

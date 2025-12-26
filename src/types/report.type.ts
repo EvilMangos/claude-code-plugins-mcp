@@ -3,6 +3,7 @@
  */
 export const ReportType = {
 	REQUIREMENTS: "requirements",
+	CODEBASE_ANALYSIS: "codebase-analysis",
 	PLAN: "plan",
 	TESTS_DESIGN: "tests-design",
 	TESTS_REVIEW: "tests-review",

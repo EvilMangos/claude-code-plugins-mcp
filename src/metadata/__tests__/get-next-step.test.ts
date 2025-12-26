@@ -1,25 +1,20 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReportType } from "../../types/report.type";
 import { MetadataService } from "../metadata.service";
 import type { StoredMetadata } from "../types/stored-metadata.interface";
 import { createMockMetadataRepository } from "../repository/__mocks__/metadata.repository.mock";
 
-// Create mock repository
-const mockRepository = createMockMetadataRepository();
-
-// Create service with mock repository
-const metadataService = new MetadataService(mockRepository);
+let mockRepository: ReturnType<typeof createMockMetadataRepository>;
+let metadataService: MetadataService;
 
 describe("MetadataService.getNextStep", () => {
 	beforeEach(() => {
+		mockRepository = createMockMetadataRepository();
+		metadataService = new MetadataService(mockRepository);
 		vi.clearAllMocks();
 	});
 
-	afterEach(() => {
-		vi.clearAllMocks();
-	});
-
-	describe("Basic Functionality", () => {
+	describe.concurrent("Basic Functionality", () => {
 		it.concurrent(
 			"should return the current step for in-progress workflow",
 			async () => {
@@ -91,7 +86,7 @@ describe("MetadataService.getNextStep", () => {
 		});
 	});
 
-	describe("Completion Detection", () => {
+	describe.concurrent("Completion Detection", () => {
 		it.concurrent(
 			"should return complete: true when completedAt is set",
 			async () => {
@@ -178,7 +173,7 @@ describe("MetadataService.getNextStep", () => {
 		);
 	});
 
-	describe("Error Handling", () => {
+	describe.concurrent("Error Handling", () => {
 		it.concurrent("should return error when metadata not found", async () => {
 			vi.mocked(mockRepository.get).mockReturnValue(undefined);
 
@@ -223,7 +218,7 @@ describe("MetadataService.getNextStep", () => {
 		});
 	});
 
-	describe("Full 12-Step Workflow", () => {
+	describe.concurrent("Full 12-Step Workflow", () => {
 		const fullWorkflowSteps: ReportType[] = [
 			"requirements",
 			"plan",

@@ -1,26 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ReportType } from "../../types/report.type";
 import { SignalService } from "../signal.service";
-import type { IStoredSignal } from "../types/stored-signal.interface";
 import { createMockSignalRepository } from "../repository/__mocks__/signal.repository.mock";
 import { createMockMetadataRepository } from "../../metadata/repository/__mocks__/metadata.repository.mock";
-
-/**
- * Helper to create a stored signal
- */
-function createStoredSignal(
-	taskId: string,
-	signalType: ReportType,
-	status: "passed" | "failed",
-	summary: string
-): IStoredSignal {
-	return {
-		taskId,
-		signalType,
-		content: { status, summary },
-		savedAt: new Date().toISOString(),
-	};
-}
+import { createStoredSignal } from "./helpers/signal-test-utils";
+import { SignalStatus } from "../types/signal-status.type";
 
 describe("SignalService.waitSignal", () => {
 	beforeEach(() => {
@@ -44,7 +28,7 @@ describe("SignalService.waitSignal", () => {
 
 				const taskId = "task-123";
 				vi.mocked(mockRepository.get).mockReturnValue(
-					createStoredSignal(taskId, "requirements", "passed", "OK")
+					createStoredSignal(taskId, "requirements", SignalStatus.PASSED, "OK")
 				);
 
 				const resultPromise = signalService.waitSignal({
@@ -77,7 +61,12 @@ describe("SignalService.waitSignal", () => {
 
 				const taskId = "task-123";
 				vi.mocked(mockRepository.get).mockReturnValue(
-					createStoredSignal(taskId, "requirements", "failed", "Error")
+					createStoredSignal(
+						taskId,
+						"requirements",
+						SignalStatus.FAILED,
+						"Error"
+					)
 				);
 
 				const resultPromise = signalService.waitSignal({
@@ -113,10 +102,20 @@ describe("SignalService.waitSignal", () => {
 					(tid: string, type: ReportType) => {
 						if (tid === taskId) {
 							if (type === "performance") {
-								return createStoredSignal(tid, type, "passed", "Perf OK");
+								return createStoredSignal(
+									tid,
+									type,
+									SignalStatus.PASSED,
+									"Perf OK"
+								);
 							}
 							if (type === "security") {
-								return createStoredSignal(tid, type, "passed", "Sec OK");
+								return createStoredSignal(
+									tid,
+									type,
+									SignalStatus.PASSED,
+									"Sec OK"
+								);
 							}
 						}
 						return undefined;
@@ -158,10 +157,20 @@ describe("SignalService.waitSignal", () => {
 					(tid: string, type: ReportType) => {
 						if (tid === taskId) {
 							if (type === "performance") {
-								return createStoredSignal(tid, type, "passed", "Perf OK");
+								return createStoredSignal(
+									tid,
+									type,
+									SignalStatus.PASSED,
+									"Perf OK"
+								);
 							}
 							if (type === "security") {
-								return createStoredSignal(tid, type, "failed", "Sec FAIL");
+								return createStoredSignal(
+									tid,
+									type,
+									SignalStatus.FAILED,
+									"Sec FAIL"
+								);
 							}
 						}
 						return undefined;
@@ -203,10 +212,20 @@ describe("SignalService.waitSignal", () => {
 					(tid: string, type: ReportType) => {
 						if (tid === taskId) {
 							if (type === "performance") {
-								return createStoredSignal(tid, type, "failed", "Perf FAIL");
+								return createStoredSignal(
+									tid,
+									type,
+									SignalStatus.FAILED,
+									"Perf FAIL"
+								);
 							}
 							if (type === "security") {
-								return createStoredSignal(tid, type, "failed", "Sec FAIL");
+								return createStoredSignal(
+									tid,
+									type,
+									SignalStatus.FAILED,
+									"Sec FAIL"
+								);
 							}
 						}
 						return undefined;
@@ -279,13 +298,23 @@ describe("SignalService.waitSignal", () => {
 						if (type === "performance") {
 							// Performance found on 2nd poll
 							if (callCount >= 1) {
-								return createStoredSignal(tid, type, "passed", "Perf OK");
+								return createStoredSignal(
+									tid,
+									type,
+									SignalStatus.PASSED,
+									"Perf OK"
+								);
 							}
 							return undefined;
 						}
 						if (type === "security") {
 							// Security found immediately
-							return createStoredSignal(tid, type, "passed", "Sec OK");
+							return createStoredSignal(
+								tid,
+								type,
+								SignalStatus.PASSED,
+								"Sec OK"
+							);
 						}
 						return undefined;
 					}
@@ -364,7 +393,7 @@ describe("SignalService.waitSignal", () => {
 
 			vi.mocked(mockRepository.get).mockImplementation(
 				(tid: string, type: ReportType) => {
-					return createStoredSignal(tid, type, "passed", "OK");
+					return createStoredSignal(tid, type, SignalStatus.PASSED, "OK");
 				}
 			);
 
@@ -396,7 +425,12 @@ describe("SignalService.waitSignal", () => {
 
 				vi.mocked(mockRepository.get).mockImplementation(
 					(tid: string, type: ReportType) => {
-						return createStoredSignal(tid, type, "passed", `${type} OK`);
+						return createStoredSignal(
+							tid,
+							type,
+							SignalStatus.PASSED,
+							`${type} OK`
+						);
 					}
 				);
 

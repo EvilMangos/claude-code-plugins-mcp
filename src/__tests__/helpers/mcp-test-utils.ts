@@ -24,69 +24,9 @@ export type ToolHandler = (
 ) => Promise<{ content: Array<{ type: string; text: string }> }>;
 
 /**
- * Interface for the save-report tool definition as retrieved from _registeredTools.
+ * Generic interface for a tool definition as retrieved from _registeredTools.
  */
-export interface SaveReportToolDefinition {
-	handler?: ToolHandler;
-	inputSchema?: {
-		shape?: Record<string, unknown>;
-		_def?: { shape?: () => Record<string, unknown> };
-	};
-	description?: string;
-}
-
-/**
- * Interface for the get-report tool definition as retrieved from _registeredTools.
- */
-export interface GetReportToolDefinition {
-	handler?: ToolHandler;
-	inputSchema?: {
-		shape?: Record<string, unknown>;
-		_def?: { shape?: () => Record<string, unknown> };
-	};
-	description?: string;
-}
-
-/**
- * Interface for the save-signal tool definition as retrieved from _registeredTools.
- */
-export interface SaveSignalToolDefinition {
-	handler?: ToolHandler;
-	inputSchema?: {
-		shape?: Record<string, unknown>;
-		_def?: { shape?: () => Record<string, unknown> };
-	};
-	description?: string;
-}
-
-/**
- * Interface for the wait-signal tool definition as retrieved from _registeredTools.
- */
-export interface WaitSignalToolDefinition {
-	handler?: ToolHandler;
-	inputSchema?: {
-		shape?: Record<string, unknown>;
-		_def?: { shape?: () => Record<string, unknown> };
-	};
-	description?: string;
-}
-
-/**
- * Interface for the create-metadata tool definition as retrieved from _registeredTools.
- */
-export interface CreateMetadataToolDefinition {
-	handler?: ToolHandler;
-	inputSchema?: {
-		shape?: Record<string, unknown>;
-		_def?: { shape?: () => Record<string, unknown> };
-	};
-	description?: string;
-}
-
-/**
- * Interface for the get-next-step tool definition as retrieved from _registeredTools.
- */
-export interface GetNextStepToolDefinition {
+export interface ToolDefinition {
 	handler?: ToolHandler;
 	inputSchema?: {
 		shape?: Record<string, unknown>;
@@ -122,9 +62,9 @@ export function getRegisteredTools(server: McpServer): RegisteredTools {
  * @param server - The McpServer instance with tools registered.
  * @returns The save-report tool definition.
  */
-export function getSaveReportTool(server: McpServer): SaveReportToolDefinition {
+export function getSaveReportTool(server: McpServer): ToolDefinition {
 	const registeredTools = getRegisteredTools(server);
-	return registeredTools["save-report"] as SaveReportToolDefinition;
+	return registeredTools["save-report"] as ToolDefinition;
 }
 
 /**
@@ -132,9 +72,9 @@ export function getSaveReportTool(server: McpServer): SaveReportToolDefinition {
  * @param server - The McpServer instance with tools registered.
  * @returns The get-report tool definition.
  */
-export function getGetReportTool(server: McpServer): GetReportToolDefinition {
+export function getGetReportTool(server: McpServer): ToolDefinition {
 	const registeredTools = getRegisteredTools(server);
-	return registeredTools["get-report"] as GetReportToolDefinition;
+	return registeredTools["get-report"] as ToolDefinition;
 }
 
 /**
@@ -142,9 +82,9 @@ export function getGetReportTool(server: McpServer): GetReportToolDefinition {
  * @param server - The McpServer instance with tools registered.
  * @returns The save-signal tool definition.
  */
-export function getSaveSignalTool(server: McpServer): SaveSignalToolDefinition {
+export function getSaveSignalTool(server: McpServer): ToolDefinition {
 	const registeredTools = getRegisteredTools(server);
-	return registeredTools["save-signal"] as SaveSignalToolDefinition;
+	return registeredTools["save-signal"] as ToolDefinition;
 }
 
 /**
@@ -152,9 +92,9 @@ export function getSaveSignalTool(server: McpServer): SaveSignalToolDefinition {
  * @param server - The McpServer instance with tools registered.
  * @returns The wait-signal tool definition.
  */
-export function getWaitSignalTool(server: McpServer): WaitSignalToolDefinition {
+export function getWaitSignalTool(server: McpServer): ToolDefinition {
 	const registeredTools = getRegisteredTools(server);
-	return registeredTools["wait-signal"] as WaitSignalToolDefinition;
+	return registeredTools["wait-signal"] as ToolDefinition;
 }
 
 /**
@@ -162,11 +102,9 @@ export function getWaitSignalTool(server: McpServer): WaitSignalToolDefinition {
  * @param server - The McpServer instance with tools registered.
  * @returns The create-metadata tool definition.
  */
-export function getCreateMetadataTool(
-	server: McpServer
-): CreateMetadataToolDefinition {
+export function getCreateMetadataTool(server: McpServer): ToolDefinition {
 	const registeredTools = getRegisteredTools(server);
-	return registeredTools["create-metadata"] as CreateMetadataToolDefinition;
+	return registeredTools["create-metadata"] as ToolDefinition;
 }
 
 /**
@@ -174,11 +112,9 @@ export function getCreateMetadataTool(
  * @param server - The McpServer instance with tools registered.
  * @returns The get-next-step tool definition.
  */
-export function getGetNextStepTool(
-	server: McpServer
-): GetNextStepToolDefinition {
+export function getGetNextStepTool(server: McpServer): ToolDefinition {
 	const registeredTools = getRegisteredTools(server);
-	return registeredTools["get-next-step"] as GetNextStepToolDefinition;
+	return registeredTools["get-next-step"] as ToolDefinition;
 }
 
 /**
@@ -187,12 +123,12 @@ export function getGetNextStepTool(
 export interface TestServerSetup {
 	server: McpServer;
 	registeredTools: RegisteredTools;
-	saveReportTool: SaveReportToolDefinition;
-	getReportTool: GetReportToolDefinition;
-	saveSignalTool: SaveSignalToolDefinition;
-	waitSignalTool: WaitSignalToolDefinition;
-	createMetadataTool: CreateMetadataToolDefinition;
-	getNextStepTool: GetNextStepToolDefinition;
+	saveReportTool: ToolDefinition;
+	getReportTool: ToolDefinition;
+	saveSignalTool: ToolDefinition;
+	waitSignalTool: ToolDefinition;
+	createMetadataTool: ToolDefinition;
+	getNextStepTool: ToolDefinition;
 	container: Container;
 }
 
@@ -204,7 +140,7 @@ export interface TestServerSetup {
  * @returns The schema shape object, or undefined if not extractable.
  */
 export function extractSchemaShape(
-	inputSchema: SaveReportToolDefinition["inputSchema"]
+	inputSchema: ToolDefinition["inputSchema"]
 ): Record<string, unknown> | undefined {
 	if (!inputSchema || typeof inputSchema !== "object") {
 		return undefined;

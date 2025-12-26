@@ -7,6 +7,7 @@ import {
 import { REPORT_TYPES } from "../types/report.type";
 import { TOKENS } from "../container";
 import { ReportRepository } from "../report/types/report.repository.interface";
+import { SignalStatus } from "../signal/types/signal-status.type";
 
 /**
  * Integration tests for MCP tool registration.
@@ -424,13 +425,13 @@ describe("MCP Server Tool Registration", () => {
 
 					expect(enumValues).toBeDefined();
 					expect(Array.isArray(enumValues)).toBe(true);
-					expect(enumValues).toHaveLength(12);
+					expect(enumValues).toHaveLength(REPORT_TYPES.length);
 				}
 			}
 		);
 
 		it.concurrent(
-			"should include all 12 valid reportType values in the schema",
+			"should include all valid reportType values in the schema",
 			async () => {
 				const { saveReportTool } = await setupTestServerWithTools();
 
@@ -509,13 +510,13 @@ describe("MCP Server Tool Registration", () => {
 
 					expect(enumValues).toBeDefined();
 					expect(Array.isArray(enumValues)).toBe(true);
-					expect(enumValues).toHaveLength(12);
+					expect(enumValues).toHaveLength(REPORT_TYPES.length);
 				}
 			}
 		);
 
 		it.concurrent(
-			"should include all 12 valid reportType values in get-report schema",
+			"should include all valid reportType values in get-report schema",
 			async () => {
 				const { getReportTool } = await setupTestServerWithTools();
 
@@ -639,7 +640,7 @@ describe("MCP Server Tool Registration", () => {
 						taskId: "test-signal-task-123",
 						signalType: "requirements",
 						content: {
-							status: "passed",
+							status: SignalStatus.PASSED,
 							summary: "All requirements validated successfully",
 						},
 					},
@@ -670,7 +671,7 @@ describe("MCP Server Tool Registration", () => {
 						taskId: "",
 						signalType: "requirements",
 						content: {
-							status: "passed",
+							status: SignalStatus.PASSED,
 							summary: "Summary",
 						},
 					},
@@ -697,7 +698,7 @@ describe("MCP Server Tool Registration", () => {
 						taskId: "signal-task-id",
 						signalType: "plan",
 						content: {
-							status: "failed",
+							status: SignalStatus.FAILED,
 							summary: "Plan review failed",
 						},
 					},
@@ -868,7 +869,7 @@ describe("MCP Server Tool Registration", () => {
 						taskId: "integration-signal-test-456",
 						signalType: "acceptance",
 						content: {
-							status: "passed",
+							status: SignalStatus.PASSED,
 							summary: "Acceptance tests passed",
 						},
 					},
@@ -893,7 +894,7 @@ describe("MCP Server Tool Registration", () => {
 				expect(parsedWaitResult.success).toBe(true);
 				// waitSignal returns content array, not signal
 				expect(parsedWaitResult.content).toBeDefined();
-				expect(parsedWaitResult.content[0].status).toBe("passed");
+				expect(parsedWaitResult.content[0].status).toBe(SignalStatus.PASSED);
 				expect(parsedWaitResult.content[0].summary).toBe(
 					"Acceptance tests passed"
 				);

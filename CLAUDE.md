@@ -76,7 +76,7 @@ Metadata-related functionality for storing workflow execution state:
 - **Storage**: `src/metadata/repository/metadata.repository.ts` - SQLite storage with `create(taskId, executionSteps)`, `get()`, `exists()`, `incrementStep()`, `decrementStep()`, `clear()`. Auto-generates timestamps. ExecutionSteps array is JSON-serialized. Uses primary key `task_id`.
 - **Service**: `src/metadata/metadata.service.ts` - Business logic for metadata operations (createMetadata, getNextStep)
 
-The `reportType`/`signalType` must be one of the 12 valid workflow steps defined in `REPORT_TYPES`.
+The `reportType`/`signalType` must be one of the 13 valid workflow steps defined in `REPORT_TYPES`.
 
 ### Adding New Tools
 
@@ -88,8 +88,10 @@ The `reportType`/`signalType` must be one of the 12 valid workflow steps defined
 
 - Tests located in `__tests__/` directories alongside source
 - Uses Vitest with globals enabled
-- Test helpers in `src/__tests__/helpers/`
+- Shared test helpers in `src/__tests__/helpers/` (e.g., `mcp-test-utils.ts` with `ToolDefinition` interface)
+- Module-specific test helpers in `<module>/__tests__/helpers/` (e.g., `src/signal/__tests__/helpers/signal-test-utils.ts`)
 - Tests excluded from TypeScript compilation via tsconfig
+- Use `REPORT_TYPES` constant instead of hardcoded lists in parameterized tests
 
 ## Pre-commit Hooks
 

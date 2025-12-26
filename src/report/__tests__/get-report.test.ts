@@ -1,6 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ReportService } from "../report.service";
-import { ReportType } from "../../types/report.type";
+import { REPORT_TYPES } from "../../types/report.type";
 import { GetReportInput } from "../schemas/get-report.schema";
 import type { StoredReport } from "../types/stored-report.interface";
 import { createMockReportRepository } from "../repository/__mocks__/report.repository.mock";
@@ -20,10 +20,6 @@ const reportService = new ReportService(mockRepository);
 
 describe("ReportService.getReport", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
-	});
-
-	afterEach(() => {
 		vi.clearAllMocks();
 	});
 
@@ -154,25 +150,10 @@ describe("ReportService.getReport", () => {
 			}
 		);
 
-		it.concurrent("should accept all 12 valid report types", async () => {
+		it.concurrent("should accept all valid report types", async () => {
 			vi.mocked(mockRepository.get).mockReturnValue(undefined);
 
-			const validTypes: ReportType[] = [
-				"requirements",
-				"plan",
-				"tests-design",
-				"tests-review",
-				"implementation",
-				"stabilization",
-				"acceptance",
-				"performance",
-				"security",
-				"refactoring",
-				"code-review",
-				"documentation",
-			];
-
-			const inputs: GetReportInput[] = validTypes.map((reportType) => ({
+			const inputs: GetReportInput[] = REPORT_TYPES.map((reportType) => ({
 				taskId: "task-123",
 				reportType,
 			}));
