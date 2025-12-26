@@ -6,6 +6,14 @@ import { createMockMetadataRepository } from "../../metadata/repository/__mocks_
 import { createStoredSignal } from "./helpers/signal-test-utils";
 import { SignalStatus } from "../types/signal-status.type";
 
+// Mock the config module to control timeout values in tests
+vi.mock("../../config/wait-signal.config", () => ({
+	waitSignalConfig: {
+		timeoutMs: 1000,
+		pollIntervalMs: 100,
+	},
+}));
+
 describe("SignalService.waitSignal", () => {
 	beforeEach(() => {
 		vi.useFakeTimers();
@@ -39,8 +47,6 @@ describe("SignalService.waitSignal", () => {
 				const resultPromise = signalService.waitSignal({
 					taskId,
 					signalType: ReportType.REQUIREMENTS,
-					timeoutMs: 1000,
-					pollIntervalMs: 100,
 				});
 
 				await vi.runAllTimersAsync();
@@ -77,8 +83,6 @@ describe("SignalService.waitSignal", () => {
 				const resultPromise = signalService.waitSignal({
 					taskId,
 					signalType: ReportType.REQUIREMENTS,
-					timeoutMs: 1000,
-					pollIntervalMs: 100,
 				});
 
 				await vi.runAllTimersAsync();
@@ -130,8 +134,6 @@ describe("SignalService.waitSignal", () => {
 				const resultPromise = signalService.waitSignal({
 					taskId,
 					signalType: [ReportType.PERFORMANCE, ReportType.SECURITY],
-					timeoutMs: 1000,
-					pollIntervalMs: 100,
 				});
 
 				await vi.runAllTimersAsync();
@@ -185,8 +187,6 @@ describe("SignalService.waitSignal", () => {
 				const resultPromise = signalService.waitSignal({
 					taskId,
 					signalType: [ReportType.PERFORMANCE, ReportType.SECURITY],
-					timeoutMs: 1000,
-					pollIntervalMs: 100,
 				});
 
 				await vi.runAllTimersAsync();
@@ -240,8 +240,6 @@ describe("SignalService.waitSignal", () => {
 				const resultPromise = signalService.waitSignal({
 					taskId,
 					signalType: [ReportType.PERFORMANCE, ReportType.SECURITY],
-					timeoutMs: 1000,
-					pollIntervalMs: 100,
 				});
 
 				await vi.runAllTimersAsync();
@@ -267,8 +265,6 @@ describe("SignalService.waitSignal", () => {
 			const resultPromise = signalService.waitSignal({
 				taskId,
 				signalType: ReportType.REQUIREMENTS,
-				timeoutMs: 500,
-				pollIntervalMs: 100,
 			});
 
 			await vi.runAllTimersAsync();
@@ -328,8 +324,6 @@ describe("SignalService.waitSignal", () => {
 				const resultPromise = signalService.waitSignal({
 					taskId,
 					signalType: [ReportType.PERFORMANCE, ReportType.SECURITY],
-					timeoutMs: 5000,
-					pollIntervalMs: 100,
 				});
 
 				// First poll - only security found
@@ -361,8 +355,6 @@ describe("SignalService.waitSignal", () => {
 			const result = await signalService.waitSignal({
 				taskId: "",
 				signalType: ReportType.REQUIREMENTS,
-				timeoutMs: 1000,
-				pollIntervalMs: 100,
 			});
 
 			expect(result.success).toBe(false);
@@ -380,8 +372,6 @@ describe("SignalService.waitSignal", () => {
 			const result = await signalService.waitSignal({
 				taskId: "task-123",
 				signalType: "invalid-type" as ReportType,
-				timeoutMs: 1000,
-				pollIntervalMs: 100,
 			});
 
 			expect(result.success).toBe(false);
@@ -405,8 +395,6 @@ describe("SignalService.waitSignal", () => {
 			const resultPromise = signalService.waitSignal({
 				taskId: "task-123",
 				signalType: [ReportType.PERFORMANCE, ReportType.SECURITY],
-				timeoutMs: 1000,
-				pollIntervalMs: 100,
 			});
 
 			await vi.runAllTimersAsync();
@@ -446,8 +434,6 @@ describe("SignalService.waitSignal", () => {
 						ReportType.SECURITY,
 						ReportType.PERFORMANCE,
 					],
-					timeoutMs: 1000,
-					pollIntervalMs: 100,
 				});
 
 				await vi.runAllTimersAsync();

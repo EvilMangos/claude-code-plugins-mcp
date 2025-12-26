@@ -9,6 +9,14 @@ import { TOKENS } from "../container";
 import { ReportRepository } from "../report/types/report.repository.interface";
 import { SignalStatus } from "../signal/types/signal-status.type";
 
+// Mock the wait-signal config to use short timeouts in tests
+vi.mock("../config/wait-signal.config", () => ({
+	waitSignalConfig: {
+		timeoutMs: 150,
+		pollIntervalMs: 100,
+	},
+}));
+
 /**
  * Integration tests for MCP tool registration.
  *
@@ -770,13 +778,11 @@ describe("MCP Server Tool Registration", () => {
 				expect(waitSignalTool.handler).toBeDefined();
 
 				// Call the handler with valid input - will timeout since no signal exists
-				// Use very short timeout to speed up test (pollIntervalMs min is 100)
+				// Timeout is configured via server-side config (mocked to 150ms)
 				const result = await waitSignalTool.handler!(
 					{
 						taskId: "test-wait-task-123",
 						signalType: ReportType.REQUIREMENTS,
-						timeoutMs: 150,
-						pollIntervalMs: 100,
 					},
 					{} // empty extra context
 				);
@@ -828,8 +834,6 @@ describe("MCP Server Tool Registration", () => {
 					{
 						taskId: "wait-task-id",
 						signalType: ReportType.PLAN,
-						timeoutMs: 100,
-						pollIntervalMs: 100,
 					},
 					{}
 				);

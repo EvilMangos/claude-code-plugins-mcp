@@ -1,4 +1,5 @@
 import { inject, injectable } from "inversify";
+import { waitSignalConfig } from "../config/wait-signal.config";
 import { TOKENS } from "../container";
 import type { MetadataRepository } from "../metadata/types/metadata.repository.interface";
 import { formatError } from "../utils/format-error";
@@ -70,11 +71,11 @@ export class SignalService implements SignalServiceInterface {
 	 * Wait for one or more workflow signals to appear in repository.
 	 * Polls the repository at regular intervals until **all** requested signals are found or the timeout is reached.
 	 * When multiple signal types are provided, it returns combined content in the same order as requested.
+	 * Timeout and polling interval are configured server-side via environment variables.
 	 *
-	 * @param input - The signal input containing taskId, signalType (single or array), and optional timeout/polling settings
+	 * @param input - The signal input containing taskId and signalType (single or array)
 	 * @returns A result object with success status, combined signal content if all are found, wait time, or error message
 	 */
-
 	async waitSignal(input: WaitSignalInput): Promise<WaitSignalResult> {
 		const validation = validateInput(waitSignalSchema, input);
 
@@ -83,7 +84,8 @@ export class SignalService implements SignalServiceInterface {
 		}
 
 		const validatedInput = validation.data;
-		const { taskId, signalType, timeoutMs, pollIntervalMs } = validatedInput;
+		const { taskId, signalType } = validatedInput;
+		const { timeoutMs, pollIntervalMs } = waitSignalConfig;
 
 		// Normalize + de-duplicate (preserve order)
 		const signalTypes: ReportType[] = Array.from(
